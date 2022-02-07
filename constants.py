@@ -1,0 +1,1 @@
+LAFAN1_DIRECTORY='data/lafan1'
