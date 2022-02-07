@@ -2,6 +2,21 @@
 
 This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening".
 
+## TODO
+
+- [ ] Data Preprocessing 
+    - [ ] `util/convert.py`
+    - [ ] `util/load_data.py`
+- [ ] Transformer Models 
+    - [ ] `model/transformer.py`
+    - [ ] `model/encoding/positional_encoding.py`
+- [ ] Loss and Metrics
+    - [ ] L1 Loss
+    - [ ] L2 Losses
+    - [ ] NPSS
+- [ ] Training Script
+- [ ] Evaluation Script
+
 ## Downloading Data
 
 ### LAFAN1 Dataset
@@ -28,8 +43,6 @@ This repository contains the code accompaniying the thesis project "Transformer 
 ### Evaluation
 
 ```insert evaluation command here```
-
-## Contribution
 
 
 
