@@ -1,5 +1,6 @@
 import torch
 
+from torch import nn
 from torch.nn import Module
 
 
@@ -28,8 +29,9 @@ class Transformer(Module):
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
             dropout=dropout_p,
+            batch_first=True
         )
-        self.register_buffer('mask', get_target_mask(seq_len))
+        self.register_buffer('mask', self.get_target_mask(seq_len))
 
     def forward(
         self, src, target
@@ -51,7 +53,8 @@ class Transformer(Module):
         mask = torch.full((1, size), float("-inf"))
         mask[0, 0] = 0
         mask[0, -1] = 0
-        mask = mask.repeat(size)
+        mask = mask.repeat(size, 1)
+        print(mask.shape)
 
 
         # [0, -inf, -inf ....., 0]

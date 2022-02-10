@@ -21,11 +21,11 @@ class L1Loss(Module):
         p_cap = x_cap
 
         # Get global quaternions
-        q = x
-        q_cap = x_cap
+        # q = x
+        # q_cap = x_cap
 
         # Calculate Loss
-        return l1_loss(p, p_cap) + l1_loss(q, q_cap)
+        return l1_loss(p, p_cap) #+ l1_loss(q, q_cap)
 
 if __name__ == '__main__':
     x = torch.rand((2, 3))

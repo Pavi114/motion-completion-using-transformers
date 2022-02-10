@@ -26,14 +26,14 @@ def load_dataset(dataset_directory: str) -> Tuple[DataLoader, DataLoader]:
         num_workers=NUM_WORKERS,
     )
 
-    lafan_test_dataset = lafan1.LaFan1(
-        dataset_directory=dataset_directory, train=False, seq_len=WINDOW_SIZE
-    )
-    lafan_test_loader = DataLoader(
-        lafan_test_dataset,
-        batch_size=BATCH_SIZE,
-        shuffle=False,
-        num_workers=NUM_WORKERS,
-    )
+    # lafan_test_dataset = lafan1.LaFan1(
+    #     dataset_directory=dataset_directory, train=False, seq_len=WINDOW_SIZE
+    # )
+    # lafan_test_loader = DataLoader(
+    #     lafan_test_dataset,
+    #     batch_size=BATCH_SIZE,
+    #     shuffle=False,
+    #     num_workers=NUM_WORKERS,
+    # )
 
-    return (lafan_train_loader, lafan_test_loader)
+    return (lafan_train_loader, None)

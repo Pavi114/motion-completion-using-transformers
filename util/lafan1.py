@@ -72,7 +72,7 @@ class LaFan1(Dataset):
 
         print('Nb of sequences : {}\n'.format(X.shape[0]))
         print(input_['X'].shape, input_['local_q'].shape)
-        print(input_['X'][0][0])
+        # print(input_['X'][0][0])
 
         return input_
 

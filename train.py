@@ -2,6 +2,7 @@ from constants import *
 
 from torch.optim import Adam
 from tqdm import tqdm
+from model.loss.l1_loss import L1Loss
 from util.load_data import load_dataset
 from model.transformer import Transformer
 
@@ -9,10 +10,6 @@ from model.transformer import Transformer
 
 # Load and Preprocess Data
 train_dataloader, test_dataloader = load_dataset(LAFAN1_DIRECTORY)
-
-example_batch = next(iter(train_dataloader))
-example_batch["X"] = example_batch["X"].reshape((BATCH_SIZE, WINDOW_SIZE, 66))
-print(example_batch["X"].shape)
 
 # Training Loop
 transformer = Transformer(
@@ -29,12 +26,22 @@ optimizer_g = Adam(
     params=list(transformer.parameters())
 )
 
+criterion = L1Loss()
+
 for epoch in range(EPOCHS):
     transformer.train()
+    loss_g = 0
     for index, batch in enumerate(tqdm(train_dataloader)):
-        pass
-        # call transformer
+        seq = batch["X"].reshape((BATCH_SIZE, WINDOW_SIZE, 66))
+        out = transformer(seq, seq)
+        optimizer_g.zero_grad()
+        loss = criterion(seq, out)
+        loss.backward()
+        optimizer_g.step()
+        print(f"batch: {index} loss: {loss}")
+        loss_g += loss
 
+    print(f"epoch: {epoch}, loss: {loss_g}")
 
 
 # Testing
