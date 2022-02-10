@@ -192,7 +192,12 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
     # Extract
     bvh_files = os.listdir(bvh_path)
 
-    for file in bvh_files:
+    n_files = 5
+
+    for file_no, file in enumerate(bvh_files):
+        if file_no == n_files:
+            break
+
         if file.endswith('.bvh'):
             seq_name, subject = ntpath.basename(file[:-4]).split('_')
 

@@ -6,11 +6,12 @@ This repository contains the code accompaniying the thesis project "Transformer 
 
 - [ ] Data Preprocessing 
     - [ ] `util/convert.py`
-    - [ ] `util/load_data.py`
-- [ ] Transformer Models 
-    - [ ] `model/transformer.py`
-    - [ ] `model/encoding/positional_encoding.py`
-- [ ] Loss and Metrics
+    - [x] `util/load_data.py`
+    - [ ] `util/linear_interpolation.py`
+- [x] Transformer Models 
+    - [x] `model/transformer.py`
+    - [x] `model/encoding/positional_encoding.py`
+- [ ] Loss and Metrics (IK)
     - [ ] L1 Loss
     - [ ] L2 Losses
     - [ ] NPSS

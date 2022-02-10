@@ -54,8 +54,6 @@ class Transformer(Module):
         mask[0, 0] = 0
         mask[0, -1] = 0
         mask = mask.repeat(size, 1)
-        print(mask.shape)
-
 
         # [0, -inf, -inf ....., 0]
         # EX for size=5:
