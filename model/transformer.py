@@ -52,6 +52,8 @@ class Transformer(Module):
 
         mask = torch.full((1, size), float("-inf"))
         mask[0, 0] = 0
+        mask[0, 1] = 0
+        mask[0, 2] = 0
         mask[0, -1] = 0
         mask = mask.repeat(size, 1)
 
