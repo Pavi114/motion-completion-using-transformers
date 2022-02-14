@@ -1,5 +1,7 @@
 import re, os, ntpath
 import numpy as np
+
+from constants import FILES_TO_READ
 from . import conversion, quaternions
 
 channelmap = {
@@ -192,7 +194,7 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
     # Extract
     bvh_files = os.listdir(bvh_path)
 
-    n_files = 5
+    n_files = FILES_TO_READ
 
     for file_no, file in enumerate(bvh_files):
         if file_no == n_files:

@@ -32,8 +32,8 @@ class LaFan1(Dataset):
         print('Building the data set...')
         X, Q, parents, contacts_l, contacts_r = extract.get_lafan1_set(
             dataset_directory, self.actors, window=self.seq_len, offset=self.offset)
-        print(X.shape)
-        print(X[0][0])
+        # print(X.shape)
+        # print(X[0][0])
         # Global representation:
         q_glbl, x_glbl = quaternions.quat_fk(Q, X, parents)
 
