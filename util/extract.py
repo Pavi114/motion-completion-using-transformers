@@ -1,3 +1,4 @@
+import json
 import re, os, ntpath
 import numpy as np
 
@@ -125,7 +126,13 @@ def read_bvh(filename, start=None, end=None, order=None):
                 fnum = (end - start) - 1
             else:
                 fnum = int(fmatch.group(1))
+
+            # Initialize positions and rotations array.
+
+            # [fnum, J, 3]
             positions = offsets[np.newaxis].repeat(fnum, axis=0)
+
+            # [fnum, J, 3]
             rotations = np.zeros((fnum, len(orients), 3))
             continue
 
@@ -134,29 +141,29 @@ def read_bvh(filename, start=None, end=None, order=None):
             frametime = float(fmatch.group(1))
             continue
 
+        # If i doesn't lie in requried range, skip.
         if (start and end) and (i < start or i >= end - 1):
             i += 1
             continue
 
+        # If nothing else matches, it is a row of values.
         dmatch = line.strip().split(' ')
+
         if dmatch:
+            # [J + 1]. First 3 are root position. Next 3*J are euler rotations.
             data_block = np.array(list(map(float, dmatch)))
+
+            # Number of joints. J
             N = len(parents)
+
+            # Index of current joint
             fi = i - start if start else i
-            if channels == 3:
-                positions[fi, 0:1] = data_block[0:3]
-                rotations[fi, :] = data_block[3:].reshape(N, 3)
-            elif channels == 6:
-                data_block = data_block.reshape(N, 6)
-                positions[fi, :] = data_block[:, 0:3]
-                rotations[fi, :] = data_block[:, 3:6]
-            elif channels == 9:
-                positions[fi, 0] = data_block[0:3]
-                data_block = data_block[3:].reshape(N - 1, 9)
-                rotations[fi, 1:] = data_block[:, 3:6]
-                positions[fi, 1:] += data_block[:, 0:3] * data_block[:, 6:9]
-            else:
-                raise Exception("Too many channels! %i" % channels)
+
+            # Position [fi, 0] is alone updated. Positions[fi, 1:J] is fixed offsets.
+            positions[fi, 0:1] = data_block[0:3]
+
+            # Rest J are filled with rotations
+            rotations[fi, :] = data_block[3:].reshape(N, 3)
 
             i += 1
 
@@ -194,10 +201,8 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
     # Extract
     bvh_files = os.listdir(bvh_path)
 
-    n_files = FILES_TO_READ
-
     for file_no, file in enumerate(bvh_files):
-        if file_no == n_files:
+        if file_no == FILES_TO_READ:
             break
 
         if file.endswith('.bvh'):

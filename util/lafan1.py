@@ -75,6 +75,9 @@ class LaFan1(Dataset):
         # 8. X
         input_['X'] = x_glbl[:, :, :, :]
 
+        # 9. local_p
+        input_['local_p'] = X
+
         # print('Nb of sequences : {}\n'.format(X.shape[0]))
         # print(input_['X'].shape, input_['local_q'].shape)
         # print(input_['X'][0][0])
@@ -96,4 +99,5 @@ class LaFan1(Dataset):
         sample['target'] = self.data['target'][idx].astype(np.float32)
         sample['root_p'] = self.data['root_p'][idx].astype(np.float32)
         sample['X'] = self.data['X'][idx].astype(np.float32)
+        sample['local_p'] = self.data['local_p'][idx].astype(np.float32)
         return sample

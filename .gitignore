@@ -1,3 +1,7 @@
 /data/*
-__pycache__
 !/data/.gitkeep
+
+/saved_weights/*
+!/saved_weights/.gitkeep
+
+__pycache__

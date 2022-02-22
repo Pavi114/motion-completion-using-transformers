@@ -1,9 +1,10 @@
 LAFAN1_DIRECTORY='data/lafan1'
-FILES_TO_READ = 5
+FILES_TO_READ = 5 # Set to -1 to read all.
 NUM_JOINTS = 22
+PARENTS = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 11, 18, 19, 20]
 
 BATCH_SIZE = 8
-WINDOW_SIZE = 32
+WINDOW_SIZE = 128
 
 NUM_WORKERS = 4
 
