@@ -10,6 +10,7 @@ from tqdm import tqdm
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
+from util.interpolation.linear_interpolation import linear_interpolation
 from util.load_data import load_dataset
 from util.quaternions import quat_fk
 from model.transformer import Transformer
@@ -47,6 +48,13 @@ def train():
 
     fk_criterion = FKLoss()
 
+    fixed_points = list(range(0, WINDOW_SIZE, KEYFRAME_GAP))
+    
+    if (WINDOW_SIZE - 1) % KEYFRAME_GAP != 0:
+        fixed_points.append(WINDOW_SIZE - 1)
+    
+    fixed_points = torch.LongTensor(fixed_points)
+
     for epoch in range(EPOCHS):
         transformer.train()
         train_loss = 0
@@ -57,7 +65,12 @@ def train():
             root_p = batch["X"][:,:,0,:]
             root_v = batch["root_v"]
 
-            seq = input_encoder(local_q, root_p, root_v)
+            in_local_q = linear_interpolation(local_q, 1, fixed_points)
+            in_root_p = linear_interpolation(root_p, 1, fixed_points)
+            in_root_v = linear_interpolation(root_v, 1, fixed_points)
+
+            # seq = input_encoder(local_q, root_p, root_v)
+            seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
             out = transformer(seq, seq)
 
@@ -73,7 +86,7 @@ def train():
             # v_loss = criterion(root_v, out_v)
             fk_loss = fk_criterion(local_p, local_q, out_local_p, out_q)
 
-            loss = q_loss + fk_loss
+            loss = 10 * q_loss + fk_loss
 
             loss.backward()
 
@@ -91,7 +104,12 @@ def train():
         root_p = viz_batch["X"][:1, :, 0,:]
         root_v = viz_batch["root_v"][:1, :, :]
 
-        seq = input_encoder(local_q, root_p, root_v)
+        in_local_q = linear_interpolation(local_q, 1, fixed_points)
+        in_local_p = linear_interpolation(local_p, 1, fixed_points)
+        in_root_p = linear_interpolation(root_p, 1, fixed_points)
+        in_root_v = linear_interpolation(root_v, 1, fixed_points)
+
+        seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
         out = transformer(seq, seq)
 
@@ -101,11 +119,16 @@ def train():
         out_local_p[:, :, 0, :] = out_p
 
         _, x = quat_fk(local_q.detach().numpy(), local_p.detach().numpy(), PARENTS)
+        _, in_x = quat_fk(in_local_q.detach().numpy(), in_local_p.detach().numpy(), PARENTS)
         _, out_x = quat_fk(out_q.detach().numpy(), out_local_p.detach().numpy(), PARENTS)
 
         with open('./viz/dist/static/animations/ground_truth.json', 'w') as f:
             f.truncate(0)
             f.write(json.dumps(x[0, :, :, :].tolist()))
+
+        with open('./viz/dist/static/animations/input.json', 'w') as f:
+            f.truncate(0)
+            f.write(json.dumps(in_x[0, :, :, :].tolist()))
         
         with open('./viz/dist/static/animations/output.json', 'w') as f:
             f.truncate(0)

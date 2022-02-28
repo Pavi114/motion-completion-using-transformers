@@ -7,23 +7,24 @@ import fetchJson from './helpers/fetchJson';
 (async () => {
     const motionSequences = [
         await fetchJson('./static/animations/ground_truth.json') as number[][][], 
+        await fetchJson('./static/animations/input.json') as number[][][],
         await fetchJson('./static/animations/output.json') as number[][][]
     ];
 
-    const container = document.createElement('div')
-    container.classList.add('container')
+    const container = document.createElement('div');
+    container.classList.add('container');
     
-    for (let i = 0; i < 2; i++) {
-        const canvas = document.createElement('canvas')
+    motionSequences.forEach((motionSequence, index) => {
+        const canvas = document.createElement('canvas');
         
-        canvas.classList.add('canvas')
+        canvas.classList.add('canvas');
     
         container.appendChild(canvas);
         
-        const clock = new Clock()
+        const clock = new Clock();
         
-        new RenderBVH(canvas, motionSequences[i], clock, i)
-    }
+        new RenderBVH(canvas, motionSequence, clock, index);
+    });
     
-    document.body.appendChild(container)
+    document.body.appendChild(container);
 })();

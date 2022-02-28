@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torch.nn import Module
 
+from constants import KEYFRAME_GAP
+
 
 from .encoding.positional_encoding import PositionalEncoding
 
@@ -44,19 +46,23 @@ class Transformer(Module):
         return self.transformer(
             src,
             target,
-            src_mask=self.mask,
+            # src_mask=self.mask,
             tgt_mask=self.mask
         )
 
     def get_target_mask(self, size) -> torch.Tensor:
 
         mask = torch.full((1, size), float("-inf"))
-        mask[0, 0] = 0
-        mask[0, 1] = 0
-        mask[0, 2] = 0
-        mask[0, -3] = 0
-        mask[0, -2] = 0
-        mask[0, -1] = 0
+        # mask[0, 0] = 0
+        # mask[0, 1] = 0
+        # mask[0, 2] = 0
+        # mask[0, -3] = 0
+        # mask[0, -2] = 0
+        # mask[0, -1] = 0
+
+        # Unmask every KEYFRAME_GAP frame
+        mask[0, ::KEYFRAME_GAP] = 0
+
         mask = mask.repeat(size, 1)
 
         # [0, -inf, -inf ....., 0]
