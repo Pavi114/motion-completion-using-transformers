@@ -46,7 +46,7 @@ def train(model_name='default', save_weights=False, load_weights=False):
 
     fk_criterion = FKLoss().to(DEVICE)
 
-    best_loss = torch.Tensor([float("+inf")])
+    best_loss = torch.Tensor([float("+inf")]).to(DEVICE)
 
     if load_weights:
         checkpoint = torch.load(
