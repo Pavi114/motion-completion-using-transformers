@@ -63,10 +63,10 @@ def train(model_name='default', save_weights=False, load_weights=False):
         train_loss = 0
         tqdm_dataloader = tqdm(train_dataloader)
         for index, batch in enumerate(tqdm_dataloader):
-            local_q = batch["local_q"]
-            local_p = batch["local_p"]
-            root_p = batch["X"][:, :, 0, :]
-            root_v = batch["root_v"]
+            local_q = batch["local_q"].to(DEVICE)
+            local_p = batch["local_p"].to(DEVICE)
+            root_p = batch["X"][:, :, 0, :].to(DEVICE)
+            root_v = batch["root_v"].to(DEVICE)
 
             in_local_q = linear_interpolation(local_q, 1, FIXED_POINTS)
             in_root_p = linear_interpolation(root_p, 1, FIXED_POINTS)

@@ -41,10 +41,10 @@ def visualize(model_name='default'):
     # Visualize
     viz_batch = next(iter(test_dataloader))
 
-    local_q = viz_batch["local_q"][:, :, :, :]
-    local_p = viz_batch["local_p"][:, :, :, :]
-    root_p = viz_batch["X"][:, :, 0, :]
-    root_v = viz_batch["root_v"][:, :, :]
+    local_q = viz_batch["local_q"][:, :, :, :].to(DEVICE)
+    local_p = viz_batch["local_p"][:, :, :, :].to(DEVICE)
+    root_p = viz_batch["X"][:, :, 0, :].to(DEVICE)
+    root_v = viz_batch["root_v"][:, :, :].to(DEVICE)
 
     in_local_q = linear_interpolation(local_q, 1, FIXED_POINTS)
     in_local_p = linear_interpolation(local_p, 1, FIXED_POINTS)
