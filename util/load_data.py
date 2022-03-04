@@ -2,7 +2,7 @@ from typing import Tuple
 from hyperparameters import FILES_TO_READ, WINDOW_SIZE
 from torch.utils.data import DataLoader
 
-from lafan1 import LaFan1
+from util.lafan1 import LaFan1
 
 from hyperparameters import BATCH_SIZE, NUM_WORKERS
 
