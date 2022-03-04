@@ -8,14 +8,14 @@ import torch
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.linear_interpolation import linear_interpolation
-from util.load_data import load_test_dataset
+from util.load_data import load_viz_dataset
 from util.quaternions import quat_fk
 from model.transformer import Transformer
 
 
 def visualize(model_name='default'):
     # Load and Preprocess Data
-    test_dataloader = load_test_dataset(LAFAN1_DIRECTORY)
+    test_dataloader = load_viz_dataset(LAFAN1_DIRECTORY)
 
     # Training Loop
     transformer = Transformer(

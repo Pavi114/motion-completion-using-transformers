@@ -1,8 +1,6 @@
-import json
 import re, os, ntpath
 import numpy as np
 
-from hyperparameters import FILES_TO_READ
 from . import conversion, quaternions
 
 channelmap = {
@@ -175,7 +173,7 @@ def read_bvh(filename, start=None, end=None, order=None):
     return Anim(rotations, positions, offsets, parents, names)
 
 
-def get_lafan1_set(bvh_path, actors, window=50, offset=20):
+def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
     """
     Extract the same test set as in the article, given the location of the BVH files.
 
@@ -203,7 +201,7 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
     files_read = 0
 
     for file_no, file in enumerate(bvh_files):
-        if files_read == FILES_TO_READ:
+        if files_read == files_to_read:
             break
 
         if file.endswith('.bvh'):

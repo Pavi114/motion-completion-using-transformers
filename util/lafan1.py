@@ -1,3 +1,4 @@
+from importlib.metadata import files
 from util import quaternions, extract
 import numpy as np
 import torch
@@ -11,7 +12,7 @@ sys.path.append("..")
 
 class LaFan1(Dataset):
 
-    def __init__(self, dataset_directory, train=False, seq_len=50, offset=10):
+    def __init__(self, dataset_directory, train=False, seq_len=50, offset=10, files_to_read=-1):
         """
         Args:
             dataset_directory (string): Path to the bvh files.
@@ -24,6 +25,7 @@ class LaFan1(Dataset):
         self.train = train
         self.seq_len = seq_len
         self.offset = offset
+        self.files_to_read = files_to_read
         self.data = self.load_data(dataset_directory)
         self.cur_seq_length = 5
 
@@ -31,7 +33,7 @@ class LaFan1(Dataset):
 
         print('Building the data set...')
         X, Q, parents, contacts_l, contacts_r = extract.get_lafan1_set(
-            dataset_directory, self.actors, window=self.seq_len, offset=self.offset)
+            dataset_directory, self.actors, window=self.seq_len, offset=self.offset, files_to_read=self.files_to_read)
         # print(X.shape)
         # print(X[0][0])
         # Global representation:
