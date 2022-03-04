@@ -3,7 +3,7 @@ from typing import List
 import torch
 from torch import LongTensor, Tensor
 
-def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor, device: torch.device = torch.device('cpu')) -> Tensor:
+def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tensor:
     """Perform linear interpolation fixed_points on a tensor
 
     This function accepts a tensor and a list of fixed indices.
@@ -25,7 +25,7 @@ def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor, device: 
 
     xi = []
 
-    index_tensor = torch.arange(len(fixed_points)).unsqueeze(dim=1).to(device)
+    index_tensor = torch.arange(len(fixed_points)).unsqueeze(dim=1).to(fixed_points.device)
 
     for i in range(len(fixed_points) - 1):
         n = fixed_points[i + 1] - fixed_points[i]
