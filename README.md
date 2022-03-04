@@ -31,7 +31,13 @@ This repository contains the code accompaniying the thesis project "Transformer 
     - Python 3.9
     - PyTorch 1.10
 
-2. Install Python Dependencies
+2. Clone the repository
+    ```git clone https://github.com/Pavi114/motion-completion-using-transformers```
+
+3. Copy constants.example.py to constants.py
+    ```cp constants.example.py constants.py```
+
+4. Install Python Dependencies
 
     ```pip install -r requirements.txt```
 
