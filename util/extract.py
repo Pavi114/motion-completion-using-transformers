@@ -200,9 +200,10 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
 
     # Extract
     bvh_files = os.listdir(bvh_path)
+    files_read = 0
 
     for file_no, file in enumerate(bvh_files):
-        if file_no == FILES_TO_READ:
+        if files_read == FILES_TO_READ:
             break
 
         if file.endswith('.bvh'):
@@ -227,6 +228,8 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20):
                     contacts_r.append(c_r)
 
                     i += offset
+            
+                files_read += 1
 
     X = np.asarray(X)
     Q = np.asarray(Q)

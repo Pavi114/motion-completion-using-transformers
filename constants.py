@@ -1,5 +1,5 @@
 LAFAN1_DIRECTORY='data/lafan1'
-FILES_TO_READ = 5 # Set to -1 to read all.
+FILES_TO_READ = 1 # Set to -1 to read all.
 NUM_JOINTS = 22
 PARENTS = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 11, 18, 19, 20]
 
@@ -20,6 +20,8 @@ V_EMBEDDING_DIM = 3
 
 DIM_MODEL = NUM_JOINTS * Q_EMBEDDING_DIM + P_EMBEDDING_DIM + V_EMBEDDING_DIM
 
-
 LEARNING_RATE = 1e-3
-EPOCHS = 10
+EPOCHS = 5
+
+MODEL_SAVE_DIRECTORY='saved_weights'
+VIZ_OUTPUT_DIRECTORY='output'

@@ -1,6 +1,5 @@
+import argparse
 from itertools import chain
-import json
-from random import choice
 from constants import *
 
 import torch
@@ -11,15 +10,13 @@ from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from util.interpolation.linear_interpolation import linear_interpolation
-from util.load_data import load_dataset
-from util.quaternions import quat_fk
+from util.load_data import load_train_dataset
 from model.transformer import Transformer
 
-def train():
-    # Define hyperparameters
 
+def train(model_name='default', save_weights=False, load_weights=False):
     # Load and Preprocess Data
-    train_dataloader, test_dataloader = load_dataset(LAFAN1_DIRECTORY)
+    train_dataloader = load_train_dataset(LAFAN1_DIRECTORY)
 
     # Training Loop
     transformer = Transformer(
@@ -49,11 +46,23 @@ def train():
     fk_criterion = FKLoss()
 
     fixed_points = list(range(0, WINDOW_SIZE, KEYFRAME_GAP))
-    
+
     if (WINDOW_SIZE - 1) % KEYFRAME_GAP != 0:
         fixed_points.append(WINDOW_SIZE - 1)
-    
+
     fixed_points = torch.LongTensor(fixed_points)
+
+    best_loss = torch.Tensor([float("+inf")])
+
+    if load_weights:
+        checkpoint = torch.load(
+            f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
+
+        transformer.load_state_dict(checkpoint['transformer_state_dict'])
+        input_encoder.load_state_dict(checkpoint['encoder_state_dict'])
+        output_decoder.load_state_dict(checkpoint['decoder_state_dict'])
+        optimizer_g.load_state_dict(checkpoint['optimizer_state_dict'])
+        best_loss = checkpoint['loss']
 
     for epoch in range(EPOCHS):
         transformer.train()
@@ -62,7 +71,7 @@ def train():
         for index, batch in enumerate(tqdm_dataloader):
             local_q = batch["local_q"]
             local_p = batch["local_p"]
-            root_p = batch["X"][:,:,0,:]
+            root_p = batch["X"][:, :, 0, :]
             root_v = batch["root_v"]
 
             in_local_q = linear_interpolation(local_q, 1, fixed_points)
@@ -91,48 +100,44 @@ def train():
             loss.backward()
 
             optimizer_g.step()
-            tqdm_dataloader.set_description(f"batch: {index + 1} loss: {loss} q_loss: {q_loss} fk_loss: {fk_loss}")
+            tqdm_dataloader.set_description(
+                f"batch: {index + 1} loss: {loss} q_loss: {q_loss} fk_loss: {fk_loss}")
             train_loss += loss
 
         print(f"epoch: {epoch + 1}, train loss: {train_loss/index}")
 
-        # Visualize
-        viz_batch = next(iter(train_dataloader))
+        if save_weights and train_loss < best_loss:
+            # Save weights
+            torch.save({
+                'transformer_state_dict': transformer.state_dict(),
+                'encoder_state_dict': input_encoder.state_dict(),
+                'decoder_state_dict': output_decoder.state_dict(),
+                'optimizer_state_dict': optimizer_g.state_dict(),
+                'loss': best_loss
+            }, f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
-        local_q = viz_batch["local_q"][:1, :, :, :]
-        local_p = viz_batch["local_p"][:1, :, :, :]
-        root_p = viz_batch["X"][:1, :, 0,:]
-        root_v = viz_batch["root_v"][:1, :, :]
+            best_loss = train_loss
 
-        in_local_q = linear_interpolation(local_q, 1, fixed_points)
-        in_local_p = linear_interpolation(local_p, 1, fixed_points)
-        in_root_p = linear_interpolation(root_p, 1, fixed_points)
-        in_root_v = linear_interpolation(root_v, 1, fixed_points)
-
-        seq = input_encoder(in_local_q, in_root_p, in_root_v)
-
-        out = transformer(seq, seq)
-
-        out_q, out_p, out_v = output_decoder(out)
-
-        out_local_p = local_p
-        out_local_p[:, :, 0, :] = out_p
-
-        _, x = quat_fk(local_q.detach().numpy(), local_p.detach().numpy(), PARENTS)
-        _, in_x = quat_fk(in_local_q.detach().numpy(), in_local_p.detach().numpy(), PARENTS)
-        _, out_x = quat_fk(out_q.detach().numpy(), out_local_p.detach().numpy(), PARENTS)
-
-        with open('./viz/dist/static/animations/ground_truth.json', 'w') as f:
-            f.truncate(0)
-            f.write(json.dumps(x[0, :, :, :].tolist()))
-
-        with open('./viz/dist/static/animations/input.json', 'w') as f:
-            f.truncate(0)
-            f.write(json.dumps(in_x[0, :, :, :].tolist()))
-        
-        with open('./viz/dist/static/animations/output.json', 'w') as f:
-            f.truncate(0)
-            f.write(json.dumps(out_x[0, :, :, :].tolist()))      
 
 if __name__ == '__main__':
-    train()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--model_name', 
+        help='Name of the model. Used for loading and saving weights.', 
+        type=str, 
+        default='default')
+
+    parser.add_argument(
+        '--save_weights', 
+        help='Save model weights.',
+        action=argparse.BooleanOptionalAction, default=False)
+
+    parser.add_argument(
+        '--load_weights', 
+        help='Load model weights.',
+        action=argparse.BooleanOptionalAction, default=False)
+
+    args = parser.parse_args()
+
+    train(args.model_name, args.save_weights, args.load_weights)
