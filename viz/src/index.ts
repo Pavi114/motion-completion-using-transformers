@@ -5,10 +5,12 @@ import './style.css';
 import fetchJson from './helpers/fetchJson';
 
 (async () => {
+    const animation_id = prompt("Enter animation id: ", "1");
+
     const motionSequences = [
-        await fetchJson('./static/animations/ground_truth.json') as number[][][], 
-        await fetchJson('./static/animations/input.json') as number[][][],
-        await fetchJson('./static/animations/output.json') as number[][][]
+        await fetchJson(`./static/animations/${animation_id}/ground_truth.json`) as number[][][], 
+        await fetchJson(`./static/animations/${animation_id}/input.json`) as number[][][],
+        await fetchJson(`./static/animations/${animation_id}/output.json`) as number[][][]
     ];
 
     const container = document.createElement('div');
