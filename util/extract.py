@@ -2,7 +2,7 @@ import json
 import re, os, ntpath
 import numpy as np
 
-from constants import FILES_TO_READ
+from hyperparameters import FILES_TO_READ
 from . import conversion, quaternions
 
 channelmap = {

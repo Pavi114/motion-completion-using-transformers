@@ -2,7 +2,7 @@ import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.nn.functional import l1_loss
-from constants import PARENTS
+from hyperparameters import PARENTS
 
 from util.quaternions import quat_fk, quat_fk_tensor
 

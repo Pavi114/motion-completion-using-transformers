@@ -8,7 +8,7 @@ class PositionalEncoding(Module):
     """nn.Module that performs positional encoding
     """
 
-    def __init__(self, d_model: int, max_len: int = 5000) -> None:
+    def __init__(self, d_model: int, max_len: int = 5000, device: torch.device = torch.device('cpu')) -> None:
         """
         Args:
             d_model (int): Embedding dimension. Must be even.
@@ -30,6 +30,8 @@ class PositionalEncoding(Module):
 
         # Set all odd terms to Tensor[max_len, 1, d_model / 2]
         pe[:, 0, 1::2] = torch.cos(position * div_term)
+
+        pe = pe.to(device)
 
         self.register_buffer('pe', pe)
 

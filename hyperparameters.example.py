@@ -1,3 +1,7 @@
+import torch
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 LAFAN1_DIRECTORY='data/lafan1'
 FILES_TO_READ = 1 # Set to -1 to read all.
 NUM_JOINTS = 22
@@ -17,8 +21,6 @@ DROPOUT_P = 0.2
 Q_EMBEDDING_DIM = 3
 P_EMBEDDING_DIM = 3
 V_EMBEDDING_DIM = 3
-
-DIM_MODEL = NUM_JOINTS * Q_EMBEDDING_DIM + P_EMBEDDING_DIM + V_EMBEDDING_DIM
 
 LEARNING_RATE = 1e-3
 EPOCHS = 5

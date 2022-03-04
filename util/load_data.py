@@ -1,10 +1,10 @@
 from typing import Tuple
-from constants import WINDOW_SIZE
+from hyperparameters import WINDOW_SIZE
 from torch.utils.data import DataLoader
 
 from . import lafan1
 
-from constants import BATCH_SIZE, NUM_WORKERS
+from hyperparameters import BATCH_SIZE, NUM_WORKERS
 
 
 def load_train_dataset(dataset_directory: str) -> DataLoader:

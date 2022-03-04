@@ -1,4 +1,4 @@
-constants.py
+hyperparameters.py
 
 /data/*
 !/data/.gitkeep

@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.nn import Module
 
-from constants import KEYFRAME_GAP
+from hyperparameters import KEYFRAME_GAP
 
 
 from .encoding.positional_encoding import PositionalEncoding
@@ -21,10 +21,11 @@ class Transformer(Module):
         num_encoder_layers,
         num_decoder_layers,
         dropout_p,
+        device
     ):
         super().__init__()
 
-        self.positional_encoder = PositionalEncoding(d_model=dim_model, max_len=seq_len)
+        self.positional_encoder = PositionalEncoding(d_model=dim_model, max_len=seq_len, device=device)
         self.transformer = nn.Transformer(
             d_model=dim_model,
             nhead=num_heads,
@@ -33,7 +34,7 @@ class Transformer(Module):
             dropout=dropout_p,
             batch_first=True
         )
-        self.register_buffer('mask', self.get_target_mask(seq_len))
+        self.register_buffer('mask', self.get_target_mask(seq_len).to(device))
 
     def forward(
         self, src, target
@@ -64,13 +65,5 @@ class Transformer(Module):
         mask[0, ::KEYFRAME_GAP] = 0
 
         mask = mask.repeat(size, 1)
-
-        # [0, -inf, -inf ....., 0]
-        # EX for size=5:
-        # [[0., -inf, -inf, -inf, -inf],
-        #  [0.,   0., -inf, -inf, -inf],
-        #  [0.,   0.,   0., -inf, -inf],
-        #  [0.,   0.,   0.,   0., -inf],
-        #  [0.,   0.,   0.,   0.,   0.]]
 
         return mask

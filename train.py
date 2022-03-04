@@ -1,6 +1,7 @@
 import argparse
 from itertools import chain
-from constants import *
+from constants import DEVICE, DIM_MODEL, FIXED_POINTS
+from hyperparameters import *
 
 import torch
 from torch.nn import L1Loss
@@ -12,7 +13,6 @@ from model.loss.fk_loss import FKLoss
 from util.interpolation.linear_interpolation import linear_interpolation
 from util.load_data import load_train_dataset
 from model.transformer import Transformer
-
 
 def train(model_name='default', save_weights=False, load_weights=False):
     # Load and Preprocess Data
@@ -26,11 +26,12 @@ def train(model_name='default', save_weights=False, load_weights=False):
         num_encoder_layers=NUM_ENCODER,
         num_decoder_layers=NUM_DECODER,
         dropout_p=DROPOUT_P,
-    )
+        device=DEVICE
+    ).to(DEVICE)
 
-    input_encoder = InputEncoder()
+    input_encoder = InputEncoder().to(DEVICE)
 
-    output_decoder = OutputDecoder()
+    output_decoder = OutputDecoder().to(DEVICE)
 
     optimizer_g = Adam(
         lr=LEARNING_RATE,
@@ -41,16 +42,9 @@ def train(model_name='default', save_weights=False, load_weights=False):
         )
     )
 
-    criterion = L1Loss()
+    criterion = L1Loss().to(DEVICE)
 
-    fk_criterion = FKLoss()
-
-    fixed_points = list(range(0, WINDOW_SIZE, KEYFRAME_GAP))
-
-    if (WINDOW_SIZE - 1) % KEYFRAME_GAP != 0:
-        fixed_points.append(WINDOW_SIZE - 1)
-
-    fixed_points = torch.LongTensor(fixed_points)
+    fk_criterion = FKLoss().to(DEVICE)
 
     best_loss = torch.Tensor([float("+inf")])
 
@@ -74,9 +68,9 @@ def train(model_name='default', save_weights=False, load_weights=False):
             root_p = batch["X"][:, :, 0, :]
             root_v = batch["root_v"]
 
-            in_local_q = linear_interpolation(local_q, 1, fixed_points)
-            in_root_p = linear_interpolation(root_p, 1, fixed_points)
-            in_root_v = linear_interpolation(root_v, 1, fixed_points)
+            in_local_q = linear_interpolation(local_q, 1, FIXED_POINTS)
+            in_root_p = linear_interpolation(root_p, 1, FIXED_POINTS)
+            in_root_v = linear_interpolation(root_v, 1, FIXED_POINTS)
 
             # seq = input_encoder(local_q, root_p, root_v)
             seq = input_encoder(in_local_q, in_root_p, in_root_v)

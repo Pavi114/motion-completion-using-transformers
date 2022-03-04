@@ -3,7 +3,7 @@ from typing import List
 import torch
 from torch import LongTensor, Tensor
 
-def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tensor:
+def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor, device: torch.device = torch.device('cpu')) -> Tensor:
     """Perform linear interpolation fixed_points on a tensor
 
     This function accepts a tensor and a list of fixed indices.
@@ -25,29 +25,22 @@ def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tenso
 
     xi = []
 
+    index_tensor = torch.arange(len(fixed_points)).unsqueeze(dim=1).to(device)
+
     for i in range(len(fixed_points) - 1):
         n = fixed_points[i + 1] - fixed_points[i]
 
-        delta = (fixed_values.index_select(dim, torch.LongTensor([i + 1])) - fixed_values.index_select(dim, torch.LongTensor([i]))) / n
+        delta = (fixed_values.index_select(dim, index_tensor[i + 1]) - fixed_values.index_select(dim, index_tensor[i])) / n
 
         d_range = []
 
-        # TODO: Opttorch.Tensor(imize
+        # TODO: Optimize
         for j in range(n):
-            d_range.append((fixed_values.index_select(dim, torch.LongTensor([i])) + delta * j))
+            d_range.append((fixed_values.index_select(dim, index_tensor[i]) + delta * j))
 
         xi.append(torch.cat(d_range, dim=dim))
 
-        # print(1, delta.shape)
-
-        # print(2, torch.arange(0, n).unsqueeze(dim=0), torch.arange(0, n).unsqueeze(dim=0).shape)
-
-        # d_range =  delta * torch.arange(0, n)
-        # print(3, d_range, d_range.shape)
-
-        # xi.append(fixed_values[i] + torch.arange(0, n).unsqueeze(dim=0) * delta)
-
-    xi.append(fixed_values.index_select(dim, torch.LongTensor([fixed_values.shape[dim] - 1])))
+    xi.append(fixed_values.index_select(dim, index_tensor[fixed_values.shape[dim] - 1]))
 
     return torch.cat(xi, dim=dim)
 

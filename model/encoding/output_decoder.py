@@ -1,7 +1,7 @@
 from typing import Tuple
 import torch
 from torch import nn, Tensor
-from constants import NUM_JOINTS, P_EMBEDDING_DIM, Q_EMBEDDING_DIM, V_EMBEDDING_DIM
+from hyperparameters import NUM_JOINTS, P_EMBEDDING_DIM, Q_EMBEDDING_DIM, V_EMBEDDING_DIM
 
 from model.encoding.linear_encoding import LinearEncoding
 

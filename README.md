@@ -34,8 +34,8 @@ This repository contains the code accompaniying the thesis project "Transformer 
 2. Clone the repository
     ```git clone https://github.com/Pavi114/motion-completion-using-transformers```
 
-3. Copy constants.example.py to constants.py
-    ```cp constants.example.py constants.py```
+3. Copy hyperparameters.example.py to hyperparameters.py
+    ```cp hyperparameters.example.py hyperparameters.py```
 
 4. Install Python Dependencies
 
