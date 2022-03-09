@@ -3,16 +3,15 @@ from typing import List
 import torch
 from torch import LongTensor, Tensor
 
-def _spherical_interpolation(x1: Tensor, x2: Tensor, alpha: float) -> Tensor:
+def _spherical_interpolation(x1: Tensor, x2: Tensor, alpha=0.2) -> Tensor:
     dot_pdt = torch.dot(x1, x2)
     i = min(max(dot_pdt, -1), 1)
-    theta = torch.acos(i) * alpha
+    theta = torch.acos(torch.Tensor(i)) * alpha
     x3 = x2 - x1 * dot_pdt
-    # normalize x3
     return x1 * torch.cos(theta) + x3 * torch.sin(theta)
 
 
-def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tensor:
+def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tensor:
     """Perform linear interpolation fixed_points on a tensor
 
     This function accepts a tensor and a list of fixed indices.
@@ -35,26 +34,31 @@ def linear_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tenso
     xi = []
 
     for i in range(len(fixed_points) - 1):
-        n = fixed_points[i + 1] - fixed_points[i]
 
-        delta = (fixed_values.index_select(dim, torch.LongTensor([i + 1])) - fixed_values.index_select(dim, torch.LongTensor([i]))) / n
+        print(fixed_values.index_select(dim, torch.LongTensor([i])).shape)
+        _shape = fixed_values.index_select(dim, torch.LongTensor([i])).shape
+        l = _spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([i])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([i + 1])).reshape(-1))
+        # n = fixed_points[i + 1] - fixed_points[i]
 
-        d_range = []
+        # delta = (fixed_values.index_select(dim, torch.LongTensor([i + 1])) - fixed_values.index_select(dim, torch.LongTensor([i]))) / n
 
-        # TODO: Opttorch.Tensor(imize
-        for j in range(n):
-            d_range.append((fixed_values.index_select(dim, torch.LongTensor([i])) + delta * j))
+        # d_range = []
 
-        xi.append(torch.cat(d_range, dim=dim))
+        # # TODO: Opttorch.Tensor(imize
+        # for j in range(n):
+        #     d_range.append((fixed_values.index_select(dim, torch.LongTensor([i])) + delta * j))
 
-        # print(1, delta.shape)
+        # xi.append(torch.cat(d_range, dim=dim))
 
-        # print(2, torch.arange(0, n).unsqueeze(dim=0), torch.arange(0, n).unsqueeze(dim=0).shape)
+        # # print(1, delta.shape)
 
-        # d_range =  delta * torch.arange(0, n)
-        # print(3, d_range, d_range.shape)
+        # # print(2, torch.arange(0, n).unsqueeze(dim=0), torch.arange(0, n).unsqueeze(dim=0).shape)
 
-        # xi.append(fixed_values[i] + torch.arange(0, n).unsqueeze(dim=0) * delta)
+        # # d_range =  delta * torch.arange(0, n)
+        # # print(3, d_range, d_range.shape)
+        print(l.reshape(_shape))
+        xi.append(fixed_values.index_select(dim, torch.LongTensor([i])))
+        xi.append(l.reshape(_shape))
 
     xi.append(fixed_values.index_select(dim, torch.LongTensor([fixed_values.shape[dim] - 1])))
 
@@ -64,7 +68,7 @@ if __name__ == '__main__':
     x = Tensor([[[[1, 2]], [[0, 0]], [[3, 6]], [[0, 0]], [[5, 10]]]])
     fixed_points = LongTensor([0, 2, 4])
 
-    out = linear_interpolation(x, 1, fixed_points)
+    out = spherical_interpolation(x, 1, fixed_points)
 
     print(out)
 
