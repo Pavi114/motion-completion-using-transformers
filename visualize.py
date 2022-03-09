@@ -68,17 +68,19 @@ def visualize(model_name='default'):
                        out_local_p.detach().cpu().numpy(), PARENTS)
 
     for i in range(BATCH_SIZE):
-        p = Path(f'{VIZ_OUTPUT_DIRECTORY}/{model_name}/{i}').mkdir(parents=True, exist_ok=True)
+        output_dir = f'{VIZ_OUTPUT_DIRECTORY}/{model_name}/{i}'
 
-        with open(f'{p}/ground_truth.json', 'w') as f:
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        with open(f'{output_dir}/ground_truth.json', 'w') as f:
             f.truncate(0)
             f.write(json.dumps(x[i, :, :, :].tolist()))
 
-        with open(f'{p}/input.json', 'w') as f:
+        with open(f'{output_dir}/input.json', 'w') as f:
             f.truncate(0)
             f.write(json.dumps(in_x[i, :, :, :].tolist()))
 
-        with open(f'{p}/output.json', 'w') as f:
+        with open(f'{output_dir}/output.json', 'w') as f:
             f.truncate(0)
             f.write(json.dumps(out_x[i, :, :, :].tolist()))
 
