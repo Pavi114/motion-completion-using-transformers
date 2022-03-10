@@ -1,6 +1,8 @@
+matplotlib == 3.5.*
 numpy == 1.22.* 
 pillow == 9.0.* 
 pyquaternion == 0.9.*
+pyyaml == 6.0.*
 torch == 1.10.* 
 torchaudio == 0.10.* 
 torchvision == 0.11.* 

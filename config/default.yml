@@ -1,0 +1,21 @@
+embedding_size:
+  p: 3
+  q: 3
+  v: 3
+
+dataset:
+  batch_size: 8
+  files_to_read: 1
+  keyframe_gap: 24
+  num_workers: 4
+  window_size: 64
+
+model:
+  num_heads: 1
+  num_encoder_layers: 1
+  num_decoder_layers: 1
+  dropout_p: 0.2
+
+hyperparameters:
+  epochs: 1
+  learning_rate: 1.0e-3

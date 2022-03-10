@@ -1,10 +1,9 @@
-import torch
 from torch import Tensor
 from torch.nn import Module
 from torch.nn.functional import l1_loss
-from hyperparameters import PARENTS
+from constants import PARENTS
 
-from util.quaternions import quat_fk, quat_fk_tensor
+from util.quaternions import quat_fk_tensor
 
 class FKLoss(Module):
     """nn.Module that calculates forward kinematics loss
@@ -31,15 +30,3 @@ class FKLoss(Module):
 
         # Calculate Loss
         return l1_loss(x, x_cap) + l1_loss(q, q_cap)
-
-        # q, x = quat_fk(local_q.detach().numpy(), local_p.detach().numpy(), PARENTS)
-
-        # q_cap, x_cap = quat_fk(local_q_cap.detach().numpy(), local_p_cap.detach().numpy(), PARENTS)
-
-        # # print(l1_loss(x, x_cap))
-
-        # # Calculate Loss
-        # return l1_loss(torch.Tensor(x), torch.Tensor(x_cap))
-
-
-

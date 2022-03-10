@@ -1,36 +1,34 @@
 import argparse
 import json
 from pathlib import Path
-from constants import DEVICE, DIM_MODEL, FIXED_POINTS
-from hyperparameters import *
+from constants import DEVICE, MODEL_SAVE_DIRECTORY, PARENTS, VIZ_OUTPUT_DIRECTORY
 
 import torch
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
+from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.linear_interpolation import linear_interpolation
 from util.load_data import load_viz_dataset
 from util.quaternions import quat_fk
 from model.transformer import Transformer
+from util.read_config import read_config
 
 
 def visualize(model_name='default'):
+    # Load config
+    config = read_config(model_name)
+
     # Load and Preprocess Data
-    test_dataloader = load_viz_dataset(LAFAN1_DIRECTORY)
+    test_dataloader = load_viz_dataset(config['dataset'])
 
     # Training Loop
-    transformer = Transformer(
-        dim_model=DIM_MODEL,
-        num_heads=NUM_HEADS,
-        seq_len=WINDOW_SIZE,
-        num_encoder_layers=NUM_ENCODER,
-        num_decoder_layers=NUM_DECODER,
-        dropout_p=DROPOUT_P,
-        device=DEVICE
-    ).to(DEVICE)
+    transformer = Transformer(config).to(DEVICE)
 
-    input_encoder = InputEncoder().to(DEVICE)
+    input_encoder = InputEncoder(config['embedding_size']).to(DEVICE)
 
-    output_decoder = OutputDecoder().to(DEVICE)
+    output_decoder = OutputDecoder(config['embedding_size']).to(DEVICE)
+
+    fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
     checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
@@ -46,10 +44,10 @@ def visualize(model_name='default'):
     root_p = viz_batch["X"][:, :, 0, :].to(DEVICE)
     root_v = viz_batch["root_v"][:, :, :].to(DEVICE)
 
-    in_local_q = linear_interpolation(local_q, 1, FIXED_POINTS)
-    in_local_p = linear_interpolation(local_p, 1, FIXED_POINTS)
-    in_root_p = linear_interpolation(root_p, 1, FIXED_POINTS)
-    in_root_v = linear_interpolation(root_v, 1, FIXED_POINTS)
+    in_local_q = linear_interpolation(local_q, 1, fixed_points)
+    in_local_p = linear_interpolation(local_p, 1, fixed_points)
+    in_root_p = linear_interpolation(root_p, 1, fixed_points)
+    in_root_v = linear_interpolation(root_v, 1, fixed_points)
 
     seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
@@ -67,7 +65,7 @@ def visualize(model_name='default'):
     _, out_x = quat_fk(out_q.detach().cpu().numpy(),
                        out_local_p.detach().cpu().numpy(), PARENTS)
 
-    for i in range(BATCH_SIZE):
+    for i in range(config['dataset']['batch_size']):
         output_dir = f'{VIZ_OUTPUT_DIRECTORY}/{model_name}/{i}'
 
         Path(output_dir).mkdir(parents=True, exist_ok=True)

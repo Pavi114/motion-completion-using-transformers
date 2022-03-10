@@ -1,6 +1,6 @@
 import torch
 from torch import nn, Tensor
-from hyperparameters import NUM_JOINTS, P_EMBEDDING_DIM, Q_EMBEDDING_DIM, V_EMBEDDING_DIM
+from constants import NUM_JOINTS
 
 from model.encoding.linear_encoding import LinearEncoding
 
@@ -8,12 +8,14 @@ class InputEncoder(nn.Module):
     """Encodes the input sequence.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, embedding_size) -> None:
         super(InputEncoder, self).__init__()
 
-        self.q_encoder = LinearEncoding(input_size=4, hidden_size=16, output_size=Q_EMBEDDING_DIM)
-        self.p_encoder = LinearEncoding(input_size=3, hidden_size=8, output_size=P_EMBEDDING_DIM)
-        self.v_encoder = LinearEncoding(input_size=3, hidden_size=8, output_size=V_EMBEDDING_DIM)
+        self.embedding_size = embedding_size
+
+        self.q_encoder = LinearEncoding(input_size=4, hidden_size=16, output_size=self.embedding_size['q'])
+        self.p_encoder = LinearEncoding(input_size=3, hidden_size=8, output_size=self.embedding_size['p'])
+        self.v_encoder = LinearEncoding(input_size=3, hidden_size=8, output_size=self.embedding_size['v'])
 
     def forward(self, local_q: Tensor, root_p: Tensor, root_v: Tensor) -> Tensor:
         """
@@ -30,7 +32,7 @@ class InputEncoder(nn.Module):
         root_v = self.v_encoder(root_v)
 
         # Reshape Q
-        local_q = local_q.reshape((local_q.shape[0], local_q.shape[1], NUM_JOINTS * Q_EMBEDDING_DIM))
+        local_q = local_q.reshape((local_q.shape[0], local_q.shape[1], NUM_JOINTS * self.embedding_size['q']))
 
         # Concateneate tensors
         x = torch.cat([root_p, root_v, local_q], dim=-1)

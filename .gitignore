@@ -9,4 +9,8 @@ hyperparameters.py
 /output/*
 !/output/.gitkeep
 
+/config/*
+!/config/default.yml
+
 __pycache__
+venv
