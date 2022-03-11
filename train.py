@@ -14,6 +14,7 @@ from util.interpolation.linear_interpolation import linear_interpolation
 from util.load_data import load_train_dataset
 from model.transformer import Transformer
 from util.read_config import read_config
+from util.plot import plot_loss
 
 
 def train(model_name='default', save_weights=False, load_weights=False):
@@ -40,6 +41,8 @@ def train(model_name='default', save_weights=False, load_weights=False):
     fk_criterion = FKLoss().to(DEVICE)
 
     best_loss = torch.Tensor([float("+inf")]).to(DEVICE)
+
+    loss_history = []
 
     fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
@@ -94,6 +97,7 @@ def train(model_name='default', save_weights=False, load_weights=False):
             )
             train_loss += loss
 
+        loss_history.append(train_loss)
         print(f"epoch: {epoch + 1}, train loss: {train_loss/index}")
 
         if save_weights and train_loss < best_loss:
@@ -108,6 +112,8 @@ def train(model_name='default', save_weights=False, load_weights=False):
                 }, f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
             best_loss = train_loss
+
+        plot_loss(loss_history)
 
 
 if __name__ == '__main__':

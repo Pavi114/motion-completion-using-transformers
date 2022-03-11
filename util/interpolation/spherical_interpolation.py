@@ -25,38 +25,24 @@ def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Te
                                     First and Last Indices MUST BE 0 and N - 1
 
     Returns:
-        Tensor: Linear Interpolated Tensor
+        Tensor: Spherical Interpolated Tensor
     """
     fixed_values = x.index_select(dim, fixed_points)
 
     xi = []
 
     for i in range(len(fixed_points) - 1):
-
-        print(fixed_values.index_select(dim, torch.LongTensor([i])).shape)
-        _shape = fixed_values.index_select(dim, torch.LongTensor([i])).shape
-        l = _spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([i])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([i + 1])).reshape(-1))
-        # n = fixed_points[i + 1] - fixed_points[i]
-
-        # delta = (fixed_values.index_select(dim, torch.LongTensor([i + 1])) - fixed_values.index_select(dim, torch.LongTensor([i]))) / n
-
-        # d_range = []
+        n = fixed_points[i + 1] - fixed_points[i]
+        d_range = []
 
         # # TODO: Opttorch.Tensor(imize
-        # for j in range(n):
-        #     d_range.append((fixed_values.index_select(dim, torch.LongTensor([i])) + delta * j))
+        for j in range(n):
+            print(_spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([j])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([j + 1])).reshape(-1)))
+            d_range.append(_spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([j])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([j + 1])).reshape(-1)))
 
-        # xi.append(torch.cat(d_range, dim=dim))
-
-        # # print(1, delta.shape)
-
-        # # print(2, torch.arange(0, n).unsqueeze(dim=0), torch.arange(0, n).unsqueeze(dim=0).shape)
-
-        # # d_range =  delta * torch.arange(0, n)
-        # # print(3, d_range, d_range.shape)
-        print(l.reshape(_shape))
+        xi.append(torch.cat(d_range, dim=dim))
         xi.append(fixed_values.index_select(dim, torch.LongTensor([i])))
-        xi.append(l.reshape(_shape))
+        # xi.append(l.reshape(_shape))
 
     xi.append(fixed_values.index_select(dim, torch.LongTensor([fixed_values.shape[dim] - 1])))
 

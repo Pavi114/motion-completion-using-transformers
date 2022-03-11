@@ -15,9 +15,10 @@ from util.interpolation.linear_interpolation import linear_interpolation
 from util.load_data import load_test_dataset
 from model.transformer import Transformer
 from util.read_config import read_config
+from visualize import visualize
 
 
-def visualize(model_name='default'):
+def evaluate(model_name='default'):
     # Load config
     config = read_config(model_name)
 
