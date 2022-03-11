@@ -1,7 +1,7 @@
 import argparse
 import json
 from pathlib import Path
-from constants import DEVICE, MODEL_SAVE_DIRECTORY, PARENTS, VIZ_OUTPUT_DIRECTORY
+from constants import DEVICE, MODEL_SAVE_DIRECTORY, OUTPUT_DIRECTORY, PARENTS
 
 import torch
 from model.encoding.input_encoder import InputEncoder
@@ -66,7 +66,7 @@ def visualize(model_name='default'):
                        out_local_p.detach().cpu().numpy(), PARENTS)
 
     for i in range(config['dataset']['batch_size']):
-        output_dir = f'{VIZ_OUTPUT_DIRECTORY}/{model_name}/{i}'
+        output_dir = f'{OUTPUT_DIRECTORY}/viz/{model_name}/{i}'
 
         Path(output_dir).mkdir(parents=True, exist_ok=True)
 

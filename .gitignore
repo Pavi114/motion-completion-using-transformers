@@ -1,5 +1,3 @@
-hyperparameters.py
-
 /data/*
 !/data/.gitkeep
 
