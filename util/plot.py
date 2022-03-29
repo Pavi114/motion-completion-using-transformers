@@ -2,7 +2,7 @@ from cProfile import label
 import matplotlib.pyplot as plt
 
 def plot_loss(loss_history):
-    plt.plot(loss_history, '-r', label='loss')
+    plt.plot(loss_history.cpu().numpy(), '-r', label='loss')
     plt.show()
 
 
