@@ -19,3 +19,4 @@ model:
 hyperparameters:
   epochs: 1
   learning_rate: 1.0e-3
+  interpolation: linear

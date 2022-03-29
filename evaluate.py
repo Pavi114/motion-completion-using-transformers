@@ -11,7 +11,7 @@ from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from model.loss.l2_loss import L2PLoss, L2QLoss
 from util.interpolation.fixed_points import get_fixed_points
-from util.interpolation.linear_interpolation import linear_interpolation
+from util.interpolation.interpolation_factory import get_interpolation
 from util.load_data import load_test_dataset
 from model.transformer import Transformer
 from util.read_config import read_config
@@ -33,6 +33,8 @@ def evaluate(model_name='default'):
     output_decoder = OutputDecoder(config['embedding_size']).to(DEVICE)
 
     fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
+
+    interpolation_function = get_interpolation(config['hyperparameters']['interpolation'])
 
     checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
@@ -59,9 +61,9 @@ def evaluate(model_name='default'):
         root_p = batch["X"][:, :, 0, :].to(DEVICE)
         root_v = batch["root_v"][:, :, :].to(DEVICE)
 
-        in_local_q = linear_interpolation(local_q, 1, fixed_points)
-        in_root_p = linear_interpolation(root_p, 1, fixed_points)
-        in_root_v = linear_interpolation(root_v, 1, fixed_points)
+        in_local_q = interpolation_function(local_q, 1, fixed_points)
+        in_root_p = interpolation_function(root_p, 1, fixed_points)
+        in_root_v = interpolation_function(root_v, 1, fixed_points)
 
         seq = input_encoder(in_local_q, in_root_p, in_root_v)
 

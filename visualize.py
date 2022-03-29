@@ -7,8 +7,7 @@ import torch
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.fixed_points import get_fixed_points
-from util.interpolation.linear_interpolation import linear_interpolation
-from util.interpolation.spherical_interpolation import spherical_interpolation
+from util.interpolation.interpolation_factory import get_interpolation
 from util.load_data import load_viz_dataset
 from util.quaternions import quat_fk
 from model.transformer import Transformer
@@ -31,6 +30,8 @@ def visualize(interpolation='linear', model_name='default'):
 
     fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
+    interpolation_function = get_interpolation(config['hyperparameters']['interpolation'])
+
     checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
     transformer.load_state_dict(checkpoint['transformer_state_dict'])
@@ -45,16 +46,10 @@ def visualize(interpolation='linear', model_name='default'):
     root_p = viz_batch["X"][:, :, 0, :].to(DEVICE)
     root_v = viz_batch["root_v"][:, :, :].to(DEVICE)
 
-    if interpolation == 'spherical':
-        in_local_q = spherical_interpolation(local_q, 1, fixed_points)
-        in_local_p = spherical_interpolation(local_p, 1, fixed_points)
-        in_root_p = spherical_interpolation(root_p, 1, fixed_points)
-        in_root_v = spherical_interpolation(root_v, 1, fixed_points)
-    else:
-        in_local_q = linear_interpolation(local_q, 1, fixed_points)
-        in_local_p = linear_interpolation(local_p, 1, fixed_points)
-        in_root_p = linear_interpolation(root_p, 1, fixed_points)
-        in_root_v = linear_interpolation(root_v, 1, fixed_points)
+    in_local_q = interpolation_function(local_q, 1, fixed_points)
+    in_local_p = interpolation_function(local_p, 1, fixed_points)
+    in_root_p = interpolation_function(root_p, 1, fixed_points)
+    in_root_v = interpolation_function(root_v, 1, fixed_points)
 
     seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
