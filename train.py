@@ -98,7 +98,7 @@ def train(model_name='default', save_weights=False, load_weights=False):
             )
             train_loss += loss
 
-        loss_history.append(train_loss.cpu().numpy())
+        loss_history.append(train_loss.detach().cpu().numpy())
         print(f"epoch: {epoch + 1}, train loss: {train_loss/index}")
 
         if save_weights and train_loss < best_loss:
