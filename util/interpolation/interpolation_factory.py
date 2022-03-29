@@ -1,4 +1,4 @@
-from linear_interpolation import linear_interpolation
+from .linear_interpolation import linear_interpolation
 
 interpolations = {
     'linear': linear_interpolation
