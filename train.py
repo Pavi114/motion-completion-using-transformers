@@ -114,7 +114,7 @@ def train(model_name='default', save_weights=False, load_weights=False):
 
             best_loss = train_loss
 
-        plot_loss(loss_history)
+    plot_loss(loss_history)
 
 
 if __name__ == '__main__':
