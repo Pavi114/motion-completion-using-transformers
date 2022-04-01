@@ -2,22 +2,6 @@
 
 This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening".
 
-## TODO
-
-- [x] Data Preprocessing 
-    - [x] `util/convert.py`
-    - [x] `util/load_data.py`
-    - [x] `util/linear_interpolation.py`
-- [x] Transformer Models 
-    - [x] `model/transformer.py`
-    - [x] `model/encoding/positional_encoding.py`
-- [ ] Loss and Metrics
-    - [x] L1 Loss
-    - [ ] L2 Losses
-    - [ ] NPSS
-- [x] Training Script
-- [ ] Evaluation Script
-
 ## Downloading Data
 
 ### LAFAN1 Dataset
@@ -52,7 +36,7 @@ First activate the venv: `source venv/bin/activate`
 train.py [-h] [--model_name MODEL_NAME] [--save_weights | --no-save_weights] [--load_weights | --no-load_weights]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help            show the help message and exit
   --model_name MODEL_NAME
                         Name of the model. Used for loading and saving weights.
   --save_weights, --no-save_weights
@@ -62,6 +46,28 @@ optional arguments:
 ```
 
 ### Visualization
+
+```
+visualize.py [-h] [--model_name MODEL_NAME]
+
+optional arguments:
+  -h, --help            show the help message and exit
+  --model_name MODEL_NAME
+                        Name of the model. Used for loading and saving weights.
+```
+
+### Evaluation
+
+```
+evaluate.py [-h] [--model_name MODEL_NAME]
+
+optional arguments:
+  -h, --help            show the help message and exit
+  --model_name MODEL_NAME
+                        Name of the model. Used for loading and saving weights.
+```
+
+### Running Visualizer
 
 0. Navigate to `./viz` directory
 
@@ -92,10 +98,6 @@ optional arguments:
     ```
     npm start
     ```
-
-### Evaluation
-
-```insert evaluation command here```
 
 
 
