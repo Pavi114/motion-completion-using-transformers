@@ -107,7 +107,7 @@ def train(model_name='default', save_weights=False, load_weights=False):
 
             optimizer_g.step()
             tqdm_dataloader.set_description(
-                f"batch: {index + 1} loss: {loss:.4f} q_loss: {q_loss:.4f} fk_loss: {fk_loss:.4f}"
+                f"{model_name} | batch: {index + 1} | loss: {loss:.4f} q_loss: {q_loss:.4f} fk_loss: {fk_loss:.4f}"
             )
             train_loss += loss
 
