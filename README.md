@@ -1,6 +1,6 @@
 # Transformer based Motion In-betweening
 
-This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening".
+This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening". It contains all the modules shown in the below block diagram.
 
 ![](./static/model.jpg)
 
