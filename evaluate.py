@@ -14,6 +14,7 @@ from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.load_data import load_test_dataset
 from model.transformer import Transformer
+from util.math import round_tensor
 from util.read_config import read_config
 from visualize import visualize
 
@@ -57,10 +58,10 @@ def evaluate(model_name='default'):
     # Visualize
     tqdm_dataloader = tqdm(test_dataloader)
     for index, batch in enumerate(tqdm_dataloader):
-        local_q = torch.round(batch["local_q"].to(DEVICE), decimals=4)
-        local_p = torch.round(batch["local_p"].to(DEVICE), decimals=4)
-        root_p = torch.round(batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
-        root_v = torch.round(batch["root_v"].to(DEVICE), decimals=4)
+        local_q = round_tensor(batch["local_q"].to(DEVICE), decimals=4)
+        local_p = round_tensor(batch["local_p"].to(DEVICE), decimals=4)
+        root_p = round_tensor(batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
+        root_v = round_tensor(batch["root_v"].to(DEVICE), decimals=4)
 
         in_local_q = q_interpolation_function(local_q, 1, fixed_points)
         in_root_p = p_interpolation_function(root_p, 1, fixed_points)

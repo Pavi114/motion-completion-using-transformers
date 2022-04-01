@@ -9,6 +9,7 @@ from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.load_data import load_viz_dataset
+from util.math import round_tensor
 from util.quaternions import quat_fk
 from model.transformer import Transformer
 from util.read_config import read_config
@@ -42,10 +43,10 @@ def visualize(interpolation='linear', model_name='default'):
     # Visualize
     viz_batch = next(iter(test_dataloader))
 
-    local_q = torch.round(viz_batch["local_q"].to(DEVICE), decimals=4)
-    local_p = torch.round(viz_batch["local_p"].to(DEVICE), decimals=4)
-    root_p = torch.round(viz_batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
-    root_v = torch.round(viz_batch["root_v"].to(DEVICE), decimals=4)
+    local_q = round_tensor(viz_batch["local_q"].to(DEVICE), decimals=4)
+    local_p = round_tensor(viz_batch["local_p"].to(DEVICE), decimals=4)
+    root_p = round_tensor(viz_batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
+    root_v = round_tensor(viz_batch["root_v"].to(DEVICE), decimals=4)
 
     in_local_q = q_interpolation_function(local_q, 1, fixed_points)
     in_local_p = p_interpolation_function(local_p, 1, fixed_points)
