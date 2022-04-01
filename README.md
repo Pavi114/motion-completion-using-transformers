@@ -2,6 +2,8 @@
 
 This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening".
 
+![](./static/model.jpg)
+
 ## Downloading Data
 
 ### LAFAN1 Dataset
