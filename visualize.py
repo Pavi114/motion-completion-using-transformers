@@ -7,7 +7,7 @@ import torch
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.fixed_points import get_fixed_points
-from util.interpolation.interpolation_factory import get_interpolation
+from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.load_data import load_viz_dataset
 from util.quaternions import quat_fk
 from model.transformer import Transformer
@@ -30,7 +30,8 @@ def visualize(interpolation='linear', model_name='default'):
 
     fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
-    interpolation_function = get_interpolation(config['hyperparameters']['interpolation'])
+    p_interpolation_function = get_p_interpolation(config['hyperparameters']['interpolation'])
+    q_interpolation_function = get_q_interpolation(config['hyperparameters']['interpolation'])
 
     checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
@@ -41,15 +42,15 @@ def visualize(interpolation='linear', model_name='default'):
     # Visualize
     viz_batch = next(iter(test_dataloader))
 
-    local_q = viz_batch["local_q"][:, :, :, :].to(DEVICE)
-    local_p = viz_batch["local_p"][:, :, :, :].to(DEVICE)
-    root_p = viz_batch["X"][:, :, 0, :].to(DEVICE)
-    root_v = viz_batch["root_v"][:, :, :].to(DEVICE)
+    local_q = torch.round(viz_batch["local_q"].to(DEVICE), decimals=4)
+    local_p = torch.round(viz_batch["local_p"].to(DEVICE), decimals=4)
+    root_p = torch.round(viz_batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
+    root_v = torch.round(viz_batch["root_v"].to(DEVICE), decimals=4)
 
-    in_local_q = interpolation_function(local_q, 1, fixed_points)
-    in_local_p = interpolation_function(local_p, 1, fixed_points)
-    in_root_p = interpolation_function(root_p, 1, fixed_points)
-    in_root_v = interpolation_function(root_v, 1, fixed_points)
+    in_local_q = q_interpolation_function(local_q, 1, fixed_points)
+    in_local_p = p_interpolation_function(local_p, 1, fixed_points)
+    in_root_p = p_interpolation_function(root_p, 1, fixed_points)
+    in_root_v = p_interpolation_function(root_v, 1, fixed_points)
 
     seq = input_encoder(in_local_q, in_root_p, in_root_v)
 

@@ -22,14 +22,14 @@ class PositionalEncoding(Module):
         # Tensor[1, d_model / 2]
         div_term = torch.exp(torch.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
 
-        # Tensor[max_len, 1, d_model]
-        pe = torch.zeros(max_len, 1, d_model)
+        # Tensor[max_len, d_model]
+        pe = torch.zeros(max_len, d_model)
 
-        # Set all even terms to Tensor[max_len, 1,  d_model / 2]
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        # Set all even terms to Tensor[max_len,  d_model / 2]
+        pe[:, 0::2] = torch.sin(position * div_term)
 
-        # Set all odd terms to Tensor[max_len, 1, d_model / 2]
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        # Set all odd terms to Tensor[max_len, d_model / 2]
+        pe[:, 1::2] = torch.cos(position * div_term)
 
         pe = pe.to(device)
 

@@ -10,7 +10,7 @@ from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from util.interpolation.fixed_points import get_fixed_points
-from util.interpolation.interpolation_factory import get_interpolation
+from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.load_data import load_train_dataset
 from model.transformer import Transformer
 from util.read_config import read_config
@@ -43,7 +43,9 @@ def train(model_name='default', save_weights=False, load_weights=False):
     best_loss = torch.Tensor([float("+inf")]).to(DEVICE)
 
     loss_history = []
-    interpolation_function = get_interpolation(config['hyperparameters']['interpolation'])
+    
+    p_interpolation_function = get_p_interpolation(config['hyperparameters']['interpolation'])
+    q_interpolation_function = get_q_interpolation(config['hyperparameters']['interpolation'])
 
     fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
@@ -62,19 +64,29 @@ def train(model_name='default', save_weights=False, load_weights=False):
         train_loss = 0
         tqdm_dataloader = tqdm(train_dataloader)
         for index, batch in enumerate(tqdm_dataloader):
-            local_q = batch["local_q"].to(DEVICE)
-            local_p = batch["local_p"].to(DEVICE)
-            root_p = batch["X"][:, :, 0, :].to(DEVICE)
-            root_v = batch["root_v"].to(DEVICE)
+            local_q = torch.round(batch["local_q"].to(DEVICE), decimals=4)
+            local_p = torch.round(batch["local_p"].to(DEVICE), decimals=4)
+            root_p = torch.round(batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
+            root_v = torch.round(batch["root_v"].to(DEVICE), decimals=4)
 
-            in_local_q = interpolation_function(local_q, 1, fixed_points)
-            in_root_p = interpolation_function(root_p, 1, fixed_points)
-            in_root_v = interpolation_function(root_v, 1, fixed_points)
+            in_local_q = q_interpolation_function(local_q, 1, fixed_points)
+            in_root_p = p_interpolation_function(root_p, 1, fixed_points)
+            in_root_v = p_interpolation_function(root_v, 1, fixed_points)
+
+            # print(torch.any(torch.isnan(in_local_q)))
+
+            # print(local_q[0][0])
+            # print(local_q[0][3])
+            # print(in_local_q[0][1])
 
             # seq = input_encoder(local_q, root_p, root_v)
             seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
             out = transformer(seq, seq)
+
+            # print(out)
+
+            # break
 
             out_q, out_p, out_v = output_decoder(out)
 

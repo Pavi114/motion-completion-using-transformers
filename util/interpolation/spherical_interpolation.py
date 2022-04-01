@@ -1,20 +1,45 @@
 import torch
 from torch import LongTensor, Tensor
 
-def _spherical_interpolation(x1: Tensor, x2: Tensor, alpha=0.2) -> Tensor:
-    dot_pdt = torch.dot(x1, x2)
-    i = min(max(dot_pdt, -1), 1)
-    theta = torch.acos(torch.Tensor(i)) * alpha
-    x3 = x2 - x1 * dot_pdt
-    return x1 * torch.cos(theta) + x3 * torch.sin(theta)
+from util.quaternions import quat_exp, quat_inv_tensor, quat_mul_tensor
 
+def quat_slerp(q1: Tensor, q2: Tensor, n: int, dim: int) -> Tensor:
+    """Perform slerp on two quaternions to get n interpolated values.
+
+    Slerp(q_1, q_2, t) = q_1 . (q_1^(-1) . q_2)^t
+
+    Args:
+        q1 (Tensor): Quaternion 1 [..., 4]
+        q2 (Tensor): Quaternion 2 [..., 4]
+        n (int): Number of inbetween values
+        dim (int): Dimension to index.
+    
+    Returns:
+        Tensor: Spherical Interpolated Tensor [..., n, 4]
+    """
+    q1_inv  = quat_inv_tensor(q1)
+
+    # print("q1_inv", q1_inv)
+    
+    q = quat_mul_tensor(q1_inv, q2)
+
+    # print("q", q)
+
+    quats = []
+
+    for i in range(n):
+        t = (i + 1) / (n + 1)
+        # print("quat_exp(q, t)", quat_exp(q, t))
+        quats.append(quat_mul_tensor(q1, quat_exp(q, t)))
+
+    return torch.cat(quats, dim)
 
 def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Tensor:
-    """Perform linear interpolation fixed_points on a tensor
+    """Perform spherical interpolation fixed_points on a tensor
 
     This function accepts a tensor and a list of fixed indices.
     The fixed indices are preserved as-is and the positions in
-    between are filled with linear interpolation values.
+    between are filled with pherical interpolation values.
 
     TODO: Optimize further, maybe use cuda, parallelize?
 
@@ -29,31 +54,18 @@ def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Te
     """
     fixed_values = x.index_select(dim, fixed_points)
 
+    index_tensor = torch.arange(len(fixed_points)).unsqueeze(dim=1).to(fixed_points.device)
+
     xi = []
 
     for i in range(len(fixed_points) - 1):
-        n = fixed_points[i + 1] - fixed_points[i]
-        d_range = []
+        n = fixed_points[i + 1] - fixed_points[i] - 1
 
-        # # TODO: Opttorch.Tensor(imize
-        for j in range(n):
-            print(_spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([j])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([j + 1])).reshape(-1)))
-            d_range.append(_spherical_interpolation(fixed_values.index_select(dim, torch.LongTensor([j])).reshape(-1), fixed_values.index_select(dim, torch.LongTensor([j + 1])).reshape(-1)))
+        d_range = quat_slerp(fixed_values.index_select(dim, index_tensor[i]), fixed_values.index_select(dim, index_tensor[i + 1]), n, dim)
 
-        xi.append(torch.cat(d_range, dim=dim))
-        xi.append(fixed_values.index_select(dim, torch.LongTensor([i])))
-        # xi.append(l.reshape(_shape))
+        xi.append(fixed_values.index_select(dim, index_tensor[i]))
+        xi.append(d_range)
 
-    xi.append(fixed_values.index_select(dim, torch.LongTensor([fixed_values.shape[dim] - 1])))
+    xi.append(fixed_values.index_select(dim, index_tensor[fixed_values.shape[dim] - 1]))
 
     return torch.cat(xi, dim=dim)
-
-if __name__ == '__main__':
-    x = Tensor([[[[1, 2]], [[0, 0]], [[3, 6]], [[0, 0]], [[5, 10]]]])
-    fixed_points = LongTensor([0, 2, 4])
-
-    out = spherical_interpolation(x, 1, fixed_points)
-
-    print(out)
-
-    print(x.shape, out.shape)

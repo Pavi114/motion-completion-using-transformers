@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch import Tensor
 
 def quat_mul(x, y):
     """
@@ -49,6 +50,88 @@ def quat_inv(q):
     res = np.asarray([1, -1, -1, -1], dtype=np.float32) * q
     return res
 
+def quat_inv_tensor(q: Tensor):
+    """
+    Inverts a tensor of quaternions
+
+    :param q: quaternion tensor
+    :return: tensor of inverted quaternions
+    """
+    res = torch.Tensor([1, -1, -1, -1]).to(q.device) * q
+    return res
+
+
+def quat_norm(q: Tensor) -> Tensor:
+    """Obtains the norm of a quaternion
+
+    Args:
+        q (Tensor): Tensor of Quaternions [..., 4]
+
+    Returns:
+        Tensor: Norm of the quaternions [..., 1]
+    """
+
+    return torch.sqrt(
+        q[..., 0:1] * q[..., 0:1] +
+        q[..., 1:2] * q[..., 1:2] +
+        q[..., 2:3] * q[..., 2:3] +
+        q[..., 3:4] * q[..., 3:4]
+    )
+
+def quat_angle(q: Tensor) -> Tensor:
+    """Obtains the angle phi of a quaternion
+
+    a = ||q|| cos(phi)
+    phi = acos(a / ||q||)
+
+    Args:
+        q (Tensor): Tensor of quaternions. [..., 4]
+    
+    Returns:
+        Tensor: Tensor of Phis. [..., 1]
+    """
+    return torch.acos(q[..., 0:1] / (quat_norm(q) + 1e-8))
+
+def quat_unit_vector(q: Tensor) -> Tensor:
+    """Returns the unit vector of the quaternions.
+
+    q = a + v
+    v = n ||v|| = n ||q|| sin(phi)
+    n = v / (||q|| sin(phi))
+    
+    Args:
+        q (Tensor): Input quaternions. [..., 4]
+    
+    Returns:
+        Tensor: Unit vectors. [..., 3]
+    """
+    return q[..., 1:] / (quat_norm(q) * torch.sin(quat_angle(q)) + 1e-8)
+
+def quat_exp(q: Tensor, x: float) -> Tensor:
+    """Performs quaternion exponentiation.
+
+    q^x = ||q||^x . (cos(x . phi) + n . sin(x . phi))
+
+    Args:
+        q (Tensor): Input quaternions. [..., 4]
+        x (float): Power to raise.
+    
+    Returns:
+        Tensor: Output quaternions. [..., 4]
+    """
+    norm = quat_norm(q)
+    phi = quat_angle(q)
+    n = quat_unit_vector(q)
+
+    # print("norm", norm)
+
+    # print("phi", phi)
+
+    # print("n", n)
+
+    x_phi = x * phi
+
+    return torch.pow(norm, x) * torch.cat([torch.cos(x_phi), n * torch.sin(x_phi)], dim = -1)
 
 def quat_fk(lrot, lpos, parents):
     """

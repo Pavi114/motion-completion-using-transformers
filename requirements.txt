@@ -3,8 +3,8 @@ numpy == 1.22.*
 pillow == 9.0.* 
 pyquaternion == 0.9.*
 pyyaml == 6.0.*
-torch == 1.10.* 
-torchaudio == 0.10.* 
-torchvision == 0.11.* 
+torch == 1.11.* 
+torchaudio == 0.11.* 
+torchvision == 0.12.* 
 tqdm == 4.62.*
 typing-extensions == 4.0.*
