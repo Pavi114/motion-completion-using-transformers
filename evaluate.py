@@ -106,15 +106,17 @@ def evaluate(model_name='default'):
     
     Path(path).mkdir(parents=True, exist_ok=True)
 
+    s = f'Q: {global_q_loss / index}\n' + \
+        f'FK: {global_fk_loss / index}\n' + \
+        f'L2P: {global_l2p_loss / index}\n' + \
+        f'L2Q: {global_l2q_loss / index}\n' + \
+        f'NPSS: {global_npss_loss / index}'
+
     with open(f'{path}/{model_name}.txt', 'w') as f:
         f.truncate(0)
-        f.write(
-            f'Q: {global_q_loss / index}\n' +
-            f'FK: {global_fk_loss / index}\n' +
-            f'L2P: {global_l2p_loss / index}\n' +
-            f'L2Q: {global_l2q_loss / index}\n' +
-            f'NPSS: {global_npss_loss / index}'
-        )
+        f.write(s)
+    
+    print(model_name, "\n", s, "\n")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
