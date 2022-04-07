@@ -41,8 +41,8 @@ class NPSSLoss(Module):
         x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], x_cap.shape[2] * x_cap.shape[3]))
         
         # compute fourier coefficients 
-        x_ftt_coeff = torch.fft.fft(x, axis=1)
-        x_cap_fft_coeff = torch.fft.fft(x_cap, axis=1)
+        x_ftt_coeff = torch.real(torch.fft.fft(x, axis=1))
+        x_cap_fft_coeff = torch.real(torch.fft.fft(x_cap, axis=1))
 
         #Sq the coeff
         x_ftt_coeff_sq = torch.square(x_ftt_coeff)
@@ -54,7 +54,7 @@ class NPSSLoss(Module):
 
         # normalize
         x_norm = x_ftt_coeff_sq / x_tot
-        x_cap_norm = x_cap_fft_coeff / x_cap_tot
+        x_cap_norm = x_cap_ftt_coeff_sq / x_cap_tot
 
         # Compute emd
         # emd = torch.linalg.norm((torch.cumsum(x_cap_norm, axis=1) - torch.cumsum(x_norm, axis=1)), ord=1, axis=1)
@@ -65,6 +65,6 @@ class NPSSLoss(Module):
         x_norm_tot = torch.sum(x_norm, axis=1)
 
         # Weighted Avg (NPSS)
-        npss_loss = torch.sum(torch.real(emd * x_norm_tot)) / torch.sum(torch.real(x_norm_tot))
+        npss_loss = torch.sum(emd * x_norm_tot) / torch.sum(x_norm_tot)
 
         return npss_loss
