@@ -57,7 +57,9 @@ class NPSSLoss(Module):
         x_cap_norm = x_cap_fft_coeff / x_cap_tot
 
         # Compute emd
-        emd = torch.linalg.norm((torch.cumsum(x_cap_norm, axis=1) - torch.cumsum(x_norm, axis=1)), ord=1, axis=1)
+        # emd = torch.linalg.norm((torch.cumsum(x_cap_norm, axis=1) - torch.cumsum(x_norm, axis=1)), ord=1, axis=1)
+
+        emd = torch.linalg.norm(x_norm - x_cap_norm, dim=1, ord=1)
 
         # Find total norm
         x_norm_tot = torch.sum(x_norm, axis=-2)
