@@ -61,6 +61,12 @@ def evaluate(model_name='default'):
     global_l2q_loss = 0
     global_npss_loss = 0
 
+    global_interpolation_q_loss = 0
+    global_interpolation_fk_loss = 0
+    global_interpolation_l2p_loss = 0
+    global_interpolation_l2q_loss = 0
+    global_interpolation_npss_loss = 0
+
     # Visualize
     tqdm_dataloader = tqdm(test_dataloader)
     for index, batch in enumerate(tqdm_dataloader):
@@ -70,6 +76,7 @@ def evaluate(model_name='default'):
         root_v = round_tensor(batch["root_v"].to(DEVICE), decimals=4)
 
         in_local_q = q_interpolation_function(local_q, 1, fixed_points)
+        in_local_p = p_interpolation_function(local_p, 1, fixed_points)
         in_root_p = p_interpolation_function(root_p, 1, fixed_points)
         in_root_v = p_interpolation_function(root_v, 1, fixed_points)
 
@@ -91,6 +98,12 @@ def evaluate(model_name='default'):
         l2q_loss = l2q_criterion(local_p, local_q, out_local_p, out_q).item()
         npss_loss = npss_criterion(local_p, local_q, out_local_p, out_q).item()
 
+        in_q_loss = l1_criterion(local_q, in_local_q).item()
+        in_fk_loss = fk_criterion(local_p, local_q, in_local_p, in_local_q).item()
+        in_l2p_loss = l2p_criterion(local_p, local_q, in_local_p, in_local_q).item()
+        in_l2q_loss = l2q_criterion(local_p, local_q, in_local_p, in_local_q).item()
+        in_npss_loss = npss_criterion(local_p, local_q, in_local_p, in_local_q).item()
+
         tqdm_dataloader.set_description(
             f"batch: {index + 1} | q: {q_loss:.4f} fk: {fk_loss:.4f} l2p: {l2p_loss:.4f} l2q: {l2q_loss:.4f} npss: {npss_loss:.4f}"
         )
@@ -101,22 +114,36 @@ def evaluate(model_name='default'):
         global_l2q_loss += l2q_loss
         global_npss_loss += npss_loss
 
+        global_interpolation_q_loss += in_q_loss
+        global_interpolation_fk_loss += in_fk_loss
+        global_interpolation_l2p_loss += in_l2p_loss
+        global_interpolation_l2q_loss += in_l2q_loss
+        global_interpolation_npss_loss += in_npss_loss
+
     # Store results
     path = f'{OUTPUT_DIRECTORY}/metrics'
     
     Path(path).mkdir(parents=True, exist_ok=True)
 
-    s = f'Q: {global_q_loss / index}\n' + \
-        f'FK: {global_fk_loss / index}\n' + \
-        f'L2P: {global_l2p_loss / index}\n' + \
-        f'L2Q: {global_l2q_loss / index}\n' + \
-        f'NPSS: {global_npss_loss / index}'
+    s = f'IN_Q: {global_q_loss / index}\n' + \
+        f'IN_FK: {global_fk_loss / index}\n' + \
+        f'IN_L2P: {global_l2p_loss / index}\n' + \
+        f'IN_L2Q: {global_l2q_loss / index}\n' + \
+        f'IN_NPSS: {global_npss_loss / index}'
+
+    in_s = f'Q: {global_interpolation_q_loss / index}\n' + \
+        f'FK: {global_interpolation_fk_loss / index}\n' + \
+        f'L2P: {global_interpolation_l2p_loss / index}\n' + \
+        f'L2Q: {global_interpolation_l2q_loss / index}\n' + \
+        f'NPSS: {global_interpolation_npss_loss / index}'
 
     with open(f'{path}/{model_name}.txt', 'w') as f:
         f.truncate(0)
         f.write(s)
     
     print(model_name, "\n", s, "\n")
+
+    print(in_s)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
