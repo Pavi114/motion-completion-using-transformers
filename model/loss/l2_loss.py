@@ -66,5 +66,9 @@ class L2QLoss(Module):
 
         q_cap, _ = quat_fk_tensor(local_q_cap, local_p_cap, PARENTS)
 
+        # Normalize
+        q = q / torch.norm(q, dim=-1, keepdim=True)
+        q_cap = q_cap / torch.norm(q_cap, dim=-1, keepdim=True)
+
         # Calculate Loss
         return mse_loss(q, q_cap)
