@@ -40,6 +40,10 @@ def visualize(interpolation='linear', model_name='default'):
     input_encoder.load_state_dict(checkpoint['encoder_state_dict'])
     output_decoder.load_state_dict(checkpoint['decoder_state_dict'])
 
+    transformer.eval()
+    input_encoder.eval()
+    output_decoder.eval()
+
     # Visualize
     viz_batch = next(iter(test_dataloader))
 

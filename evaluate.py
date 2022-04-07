@@ -50,6 +50,10 @@ def evaluate(model_name='default'):
     l2p_criterion = L2PLoss()
     l2q_criterion = L2QLoss()
 
+    transformer.eval()
+    input_encoder.eval()
+    output_decoder.eval()
+
     global_q_loss = 0
     global_fk_loss = 0
     global_l2p_loss = 0
