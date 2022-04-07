@@ -2,9 +2,10 @@ from torch import Tensor
 import torch
 from torch.nn import Module
 from torch.nn.functional import mse_loss
-from constants import PARENTS
+from constants import DEVICE, PARENTS
 
 from util.quaternions import quat_fk_tensor
+from util.train_stats import load_stats
 
 class L2PLoss(Module):
     """nn.Module that calculates L2P Loss
@@ -12,6 +13,10 @@ class L2PLoss(Module):
 
     def __init__(self) -> None:
         super(L2PLoss, self).__init__()
+        x_mean_np, x_std_np = load_stats()
+
+        self.x_mean = Tensor(x_mean_np).to(DEVICE)
+        self.x_std = Tensor(x_std_np).to(DEVICE)
 
     def forward(self, local_p: Tensor, local_q: Tensor, local_p_cap: Tensor, local_q_cap: Tensor) -> Tensor:
         """
@@ -31,11 +36,8 @@ class L2PLoss(Module):
         _, x_cap = quat_fk_tensor(local_q_cap, local_p_cap, PARENTS)
 
         # Normalize
-        x = (x - torch.mean(x, dim=1, keepdim=True)) / torch.std(x, dim=1, keepdim=True)
-
-        x_cap = (x_cap - torch.mean(x_cap, dim=1, keepdim=True)) / torch.std(x_cap, dim=1, keepdim=True)
-
-        # print(torch.norm(x, dim=1).unsqueeze(dim=1), x)
+        x = (x - self.x_mean) / self.x_std
+        x_cap = (x_cap - self.x_mean) / self.x_std
 
         # Calculate Loss
         return mse_loss(x, x_cap)

@@ -243,3 +243,34 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
     X, Q = conversion.rotate_at_frame(X, Q, anim.parents, n_past=npast)
 
     return X, Q, anim.parents, contacts_l, contacts_r
+
+def get_train_stats(bvh_folder, train_set):
+    """
+    Extract the same training set as in the paper in order to compute the normalizing statistics
+    :return: Tuple of (local position mean vector, local position standard deviation vector, local joint offsets tensor)
+    """
+    print("Building the train set...")
+    xtrain, qtrain, parents, _, _ = get_lafan1_set(
+        bvh_folder, train_set, window=50, offset=20
+    )
+
+    print("Computing stats...\n")
+    # Joint offsets : are constant, so just take the first frame:
+    offsets = xtrain[0:1, 0:1, 1:, :]  # Shape : (1, 1, J, 3)
+
+    # Global representation:
+    q_glbl, x_glbl = quaternions.quat_fk(qtrain, xtrain, parents)
+
+    x_glbl = x_glbl.reshape(-1, 22, 3)
+
+    # Global positions stats:
+    x_mean = np.mean(
+        x_glbl,
+        axis=0
+    )
+    x_std = np.std(
+        x_glbl,
+        axis=0
+    )
+
+    return x_mean, x_std, offsets, parents

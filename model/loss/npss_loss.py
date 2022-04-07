@@ -30,7 +30,6 @@ class NPSSLoss(Module):
 
         # Get global quaternions
         q, _ = quat_fk_tensor(local_q, local_p, PARENTS)
-
         q_cap, _ = quat_fk_tensor(local_q_cap, local_p_cap, PARENTS)
 
         x = q
@@ -39,7 +38,7 @@ class NPSSLoss(Module):
         # Reshape to have all features in one dimension
         x = x.reshape((x.shape[0], x.shape[1], x.shape[2] * x.shape[3]))
         x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], x_cap.shape[2] * x_cap.shape[3]))
-        
+
         # compute fourier coefficients 
         x_ftt_coeff = torch.real(torch.fft.fft(x, axis=1))
         x_cap_fft_coeff = torch.real(torch.fft.fft(x_cap, axis=1))
@@ -57,9 +56,7 @@ class NPSSLoss(Module):
         x_cap_norm = x_cap_ftt_coeff_sq / x_cap_tot
 
         # Compute emd
-        # emd = torch.linalg.norm((torch.cumsum(x_cap_norm, axis=1) - torch.cumsum(x_norm, axis=1)), ord=1, axis=1)
-
-        emd = torch.linalg.norm(x_norm - x_cap_norm, dim=1, ord=1)
+        emd = torch.norm(x_norm - x_cap_norm, dim=1, p=1)
 
         # Find total norm
         x_norm_tot = torch.sum(x_norm, axis=1)
