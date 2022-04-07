@@ -87,7 +87,7 @@ def evaluate(model_name='default'):
         fk_loss = fk_criterion(local_p, local_q, out_local_p, out_q).item()
         l2p_loss = l2p_criterion(local_p, local_q, out_local_p, out_q).item()
         l2q_loss = l2q_criterion(local_p, local_q, out_local_p, out_q).item()
-        npss_loss = npss_criterion(local_q, out_q).item()
+        npss_loss = npss_criterion(local_p, local_q, out_local_p, out_q).item()
 
         tqdm_dataloader.set_description(
             f"batch: {index + 1} | q: {q_loss:.4f} fk: {fk_loss:.4f} l2p: {l2p_loss:.4f} l2q: {l2q_loss:.4f} npss: {npss_loss:.4f}"

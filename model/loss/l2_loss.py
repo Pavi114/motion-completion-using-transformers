@@ -1,4 +1,5 @@
 from torch import Tensor
+import torch
 from torch.nn import Module
 from torch.nn.functional import mse_loss
 from constants import PARENTS
@@ -28,6 +29,13 @@ class L2PLoss(Module):
         _, x = quat_fk_tensor(local_q, local_p, PARENTS)
 
         _, x_cap = quat_fk_tensor(local_q_cap, local_p_cap, PARENTS)
+
+        # Normalize
+        x = (x - torch.mean(x, dim=1, keepdim=True)) / torch.std(x, dim=1, keepdim=True)
+
+        x_cap = (x_cap - torch.mean(x_cap, dim=1, keepdim=True)) / torch.std(x_cap, dim=1, keepdim=True)
+
+        # print(torch.norm(x, dim=1).unsqueeze(dim=1), x)
 
         # Calculate Loss
         return mse_loss(x, x_cap)
