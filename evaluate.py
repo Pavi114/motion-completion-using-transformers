@@ -100,7 +100,7 @@ def evaluate(model_name='default'):
     
     Path(path).mkdir(parents=True, exist_ok=True)
 
-    with open(f'{path}/{model_name}.txt') as f:
+    with open(f'{path}/{model_name}.txt', 'w') as f:
         f.truncate(0)
         f.write(
             f'Q: {global_q_loss}\n' +
