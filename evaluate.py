@@ -90,10 +90,10 @@ def evaluate(model_name='default'):
             f"batch: {index + 1} | q: {q_loss:.4f} fk: {fk_loss:.4f} l2p: {l2p_loss:.4f} l2q: {l2q_loss:.4f}"
         )
 
-        global_q_loss += q_loss
-        global_fk_loss += fk_loss
-        global_l2p_loss += l2p_loss
-        global_l2q_loss += l2q_loss
+        global_q_loss += q_loss.item()
+        global_fk_loss += fk_loss.item()
+        global_l2p_loss += l2p_loss.item()
+        global_l2q_loss += l2q_loss.item()
 
     # Store results
     path = f'{OUTPUT_DIRECTORY}/metrics'
