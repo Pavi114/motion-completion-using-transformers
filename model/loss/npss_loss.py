@@ -1,9 +1,7 @@
 import numpy as np
+import torch
 
 from torch.nn import Module
-
-from model.loss.l2_loss import L2QLoss
-
 
 class NPSSLoss(Module):
     """nn.Module that calculates NPSS Loss
@@ -12,7 +10,7 @@ class NPSSLoss(Module):
     """
 
     def __init__(self) -> None:
-        super(L2QLoss, self).__init__()
+        super(NPSSLoss, self).__init__()
 
     def forward(self, x, x_cap):
         """Computes NPSS loss between the ground truth and 
@@ -25,27 +23,34 @@ class NPSSLoss(Module):
         Returns:
             float: npss loss 
         """
+
+        # Reshape to have all features in one dimension
+        x = x.reshape((x.shape[0], x.shape[1], x.shape[2] * x.shape[3]))
+        x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], x_cap.shape[2] * x_cap.shape[3]))
         
         # compute fourier coefficients 
-        x_ftt_coeff = np.fft.fft(x, axis=-1)
-        x_cap_fft_coeff = np.fft.fft(x_cap, axis=-1)
+        x_ftt_coeff = torch.fft.fft(x, axis=-1)
+        x_cap_fft_coeff = torch.fft.fft(x_cap, axis=-1)
 
         #Sq the coeff
-        x_ftt_coeff_sq = np.square(x_ftt_coeff)
-        x_cap_ftt_coeff_sq = np.square(x_cap_fft_coeff)
+        x_ftt_coeff_sq = torch.square(x_ftt_coeff)
+        x_cap_ftt_coeff_sq = torch.square(x_cap_fft_coeff)
 
         # sum the tensor
-        x_tot = np.sum(x_ftt_coeff_sq, axis=-1)
-        x_cap_tot = np.sum(x_cap_ftt_coeff_sq, axis=-1)
+        x_tot = torch.sum(x_ftt_coeff_sq, axis=-2).unsqueeze(dim=-2)
+        x_cap_tot = torch.sum(x_cap_ftt_coeff_sq, axis=-2).unsqueeze(dim=-2)
 
         # normalize
         x_norm = x_ftt_coeff_sq / x_tot
         x_cap_norm = x_cap_fft_coeff / x_cap_tot
 
         # Compute emd
-        emd = np.linalg.norm((np.cumsum(x_cap_norm, axis=1) - np.cumsum(x_norm, axis=1)), ord=1, axis=1)
+        emd = torch.linalg.norm((torch.cumsum(x_cap_norm, axis=1) - torch.cumsum(x_norm, axis=1)), ord=1, axis=1)
+
+        # Find total norm
+        x_norm_tot = torch.sum(x_norm, axis=-2)
 
         # Weighted Avg (NPSS)
-        npss_loss = np.average(emd, weights=x_tot)
+        npss_loss = torch.mean(torch.real(emd * x_norm_tot))
 
         return npss_loss

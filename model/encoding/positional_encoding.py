@@ -40,7 +40,7 @@ class PositionalEncoding(Module):
         Args:
             x: Tensor, shape [seq_len, batch_size, embedding_dim]
         """
-        return x + self.pe[:x.size(0)]
+        return x + self.pe[:x.size(1)]
 
 if __name__ == '__main__':
     d_model = 256

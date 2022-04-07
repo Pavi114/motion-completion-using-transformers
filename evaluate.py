@@ -1,4 +1,5 @@
 import argparse
+from cgi import test
 from pathlib import Path
 
 import torch
@@ -10,14 +11,13 @@ from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from model.loss.l2_loss import L2PLoss, L2QLoss
+from model.loss.npss_loss import NPSSLoss
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.load_data import load_test_dataset
 from model.transformer import Transformer
 from util.math import round_tensor
 from util.read_config import read_config
-from visualize import visualize
-
 
 def evaluate(model_name='default'):
     # Load config
@@ -49,6 +49,7 @@ def evaluate(model_name='default'):
     fk_criterion = FKLoss()
     l2p_criterion = L2PLoss()
     l2q_criterion = L2QLoss()
+    npss_criterion = NPSSLoss()
 
     transformer.eval()
     input_encoder.eval()
@@ -58,6 +59,7 @@ def evaluate(model_name='default'):
     global_fk_loss = 0
     global_l2p_loss = 0
     global_l2q_loss = 0
+    global_npss_loss = 0
 
     # Visualize
     tqdm_dataloader = tqdm(test_dataloader)
@@ -81,19 +83,21 @@ def evaluate(model_name='default'):
         out_local_p[:, :, 0, :] = out_p
 
         # Evaluate
-        q_loss = l1_criterion(local_q, out_q)
-        fk_loss = fk_criterion(local_p, local_q, out_local_p, out_q)
-        l2p_loss = l2p_criterion(local_p, local_q, out_local_p, out_q)
-        l2q_loss = l2q_criterion(local_p, local_q, out_local_p, out_q)
+        q_loss = l1_criterion(local_q, out_q).item()
+        fk_loss = fk_criterion(local_p, local_q, out_local_p, out_q).item()
+        l2p_loss = l2p_criterion(local_p, local_q, out_local_p, out_q).item()
+        l2q_loss = l2q_criterion(local_p, local_q, out_local_p, out_q).item()
+        npss_loss = npss_criterion(local_q, out_q).item()
 
         tqdm_dataloader.set_description(
-            f"batch: {index + 1} | q: {q_loss:.4f} fk: {fk_loss:.4f} l2p: {l2p_loss:.4f} l2q: {l2q_loss:.4f}"
+            f"batch: {index + 1} | q: {q_loss:.4f} fk: {fk_loss:.4f} l2p: {l2p_loss:.4f} l2q: {l2q_loss:.4f} npss: {npss_loss:.4f}"
         )
 
-        global_q_loss += q_loss.item()
-        global_fk_loss += fk_loss.item()
-        global_l2p_loss += l2p_loss.item()
-        global_l2q_loss += l2q_loss.item()
+        global_q_loss += q_loss
+        global_fk_loss += fk_loss
+        global_l2p_loss += l2p_loss
+        global_l2q_loss += l2q_loss
+        global_npss_loss += npss_loss
 
     # Store results
     path = f'{OUTPUT_DIRECTORY}/metrics'
@@ -103,10 +107,11 @@ def evaluate(model_name='default'):
     with open(f'{path}/{model_name}.txt', 'w') as f:
         f.truncate(0)
         f.write(
-            f'Q: {global_q_loss}\n' +
-            f'FK: {global_fk_loss}\n' +
-            f'L2P: {global_l2p_loss}\n' +
-            f'L2Q: {global_l2q_loss}'
+            f'Q: {global_q_loss / index}\n' +
+            f'FK: {global_fk_loss / index}\n' +
+            f'L2P: {global_l2p_loss / index}\n' +
+            f'L2Q: {global_l2q_loss / index}\n' +
+            f'NPSS: {global_npss_loss / index}'
         )
 
 if __name__ == '__main__':
@@ -120,4 +125,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    visualize(args.model_name)
+    evaluate(args.model_name)
