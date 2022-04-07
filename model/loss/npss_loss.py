@@ -63,6 +63,6 @@ class NPSSLoss(Module):
         x_norm_tot = torch.sum(x_norm, axis=-2)
 
         # Weighted Avg (NPSS)
-        npss_loss = torch.mean(torch.real(emd * x_norm_tot))
+        npss_loss = torch.sum(torch.real(emd * x_norm_tot)) / torch.sum(torch.real(x_norm_tot))
 
         return npss_loss

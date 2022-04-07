@@ -79,6 +79,8 @@ def evaluate(model_name='default'):
 
         out_q, out_p, out_v = output_decoder(out)
 
+        out_q = out_q / torch.norm(out_q, dim=-1, keepdim=True)
+
         out_local_p = local_p
         out_local_p[:, :, 0, :] = out_p
 
