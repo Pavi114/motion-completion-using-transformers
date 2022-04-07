@@ -16,6 +16,8 @@ class PositionalEncoding(Module):
         """
         super(PositionalEncoding, self).__init__()
 
+        max_len = max(max_len, 64)
+
         # Tensor[max_len, 1]
         position = torch.arange(max_len).unsqueeze(1)
 

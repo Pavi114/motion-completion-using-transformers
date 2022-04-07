@@ -5,8 +5,8 @@ embedding_size:
 
 dataset:
   batch_size: 8
-  files_to_read: -1
-  keyframe_gap: 24
+  files_to_read: 5
+  keyframe_gap: 30
   num_workers: 4
   window_size: 64
 
