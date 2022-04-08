@@ -17,7 +17,7 @@ from util.read_config import read_config
 from util.smoothing.moving_average_smoothing import moving_average_smoothing
 
 
-def visualize(interpolation='linear', model_name='default'):
+def visualize(model_name='default'):
     # Load config
     config = read_config(model_name)
 
