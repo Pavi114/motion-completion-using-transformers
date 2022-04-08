@@ -10,7 +10,8 @@ import fetchJson from './helpers/fetchJson';
     const motionSequences = [
         await fetchJson(`./static/animations/${animation_id}/ground_truth.json`) as number[][][], 
         await fetchJson(`./static/animations/${animation_id}/input.json`) as number[][][],
-        await fetchJson(`./static/animations/${animation_id}/output.json`) as number[][][]
+        await fetchJson(`./static/animations/${animation_id}/output.json`) as number[][][],
+        await fetchJson(`./static/animations/${animation_id}/output_smoothened.json`) as number[][][]
     ];
 
     const container = document.createElement('div');

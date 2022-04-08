@@ -65,10 +65,15 @@ def visualize(interpolation='linear', model_name='default'):
 
     ma_out = moving_average_smoothing(out, dim=1)
 
-    out_q, out_p, out_v = output_decoder(ma_out)
+    out_q, out_p, out_v = output_decoder(out)
+
+    ma_out_q, ma_out_p, ma_out_v = output_decoder(ma_out)
 
     out_local_p = local_p
     out_local_p[:, :, 0, :] = out_p
+
+    ma_out_local_p = local_p
+    ma_out_local_p[:, :, 0, :] = ma_out_p
 
     _, x = quat_fk(local_q.detach().cpu().numpy(),
                    local_p.detach().cpu().numpy(), PARENTS)
@@ -76,6 +81,8 @@ def visualize(interpolation='linear', model_name='default'):
                       in_local_p.detach().cpu().numpy(), PARENTS)
     _, out_x = quat_fk(out_q.detach().cpu().numpy(),
                        out_local_p.detach().cpu().numpy(), PARENTS)
+    _, ma_out_x = quat_fk(ma_out_q.detach().cpu().numpy(),
+                       ma_out_local_p.detach().cpu().numpy(), PARENTS)
 
     for i in range(config['dataset']['batch_size']):
         output_dir = f'{OUTPUT_DIRECTORY}/viz/{model_name}/{i}'
@@ -93,6 +100,10 @@ def visualize(interpolation='linear', model_name='default'):
         with open(f'{output_dir}/output.json', 'w') as f:
             f.truncate(0)
             f.write(json.dumps(out_x[i, :, :, :].tolist()))
+
+        with open(f'{output_dir}/output_smoothened.json', 'w') as f:
+            f.truncate(0)
+            f.write(json.dumps(ma_out_x[i, :, :, :].tolist()))
 
 
 if __name__ == '__main__':
