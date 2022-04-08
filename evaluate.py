@@ -18,6 +18,7 @@ from util.load_data import load_test_dataset
 from model.transformer import Transformer
 from util.math import round_tensor
 from util.read_config import read_config
+from util.smoothing.moving_average_smoothing import moving_average_smoothing
 
 def evaluate(model_name='default'):
     # Load config
@@ -84,7 +85,9 @@ def evaluate(model_name='default'):
 
         out = transformer(seq, seq)
 
-        out_q, out_p, out_v = output_decoder(out)
+        ma_out = moving_average_smoothing(out, dim=1)
+
+        out_q, out_p, out_v = output_decoder(ma_out)
 
         out_q = out_q / torch.norm(out_q, dim=-1, keepdim=True)
 
