@@ -11,7 +11,7 @@ sys.path.append("..")
 
 class LaFan1(Dataset):
 
-    def __init__(self, dataset_directory, train=False, seq_len=50, offset=20, files_to_read=-1):
+    def __init__(self, dataset_directory, train=False, seq_len=50, offset=10, files_to_read=-1):
         """
         Args:
             dataset_directory (string): Path to the bvh files.
