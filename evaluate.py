@@ -85,9 +85,7 @@ def evaluate(model_name='default'):
 
         out = transformer(seq, seq)
 
-        ma_out = moving_average_smoothing(out, dim=1)
-
-        out_q, out_p, out_v = output_decoder(ma_out)
+        out_q, out_p, out_v = output_decoder(out)
 
         out_q = out_q / torch.norm(out_q, dim=-1, keepdim=True)
 
