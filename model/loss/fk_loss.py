@@ -29,4 +29,4 @@ class FKLoss(Module):
         q_cap, x_cap = quat_fk_tensor(local_q_cap, local_p_cap, PARENTS)
 
         # Calculate Loss
-        return l1_loss(x, x_cap) + l1_loss(q, q_cap)
+        return l1_loss(x, x_cap)
