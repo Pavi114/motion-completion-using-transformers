@@ -4,6 +4,7 @@ from pathlib import Path
 from constants import DEVICE, MODEL_SAVE_DIRECTORY, OUTPUT_DIRECTORY, PARENTS
 
 import torch
+from torch.nn import functional as F
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.fixed_points import get_fixed_points
@@ -13,6 +14,7 @@ from util.math import round_tensor
 from util.quaternions import quat_fk
 from model.transformer import Transformer
 from util.read_config import read_config
+from util.smoothing.moving_average_smoothing import moving_average_smoothing
 
 
 def visualize(interpolation='linear', model_name='default'):
@@ -61,7 +63,9 @@ def visualize(interpolation='linear', model_name='default'):
 
     out = transformer(seq, seq)
 
-    out_q, out_p, out_v = output_decoder(out)
+    ma_out = moving_average_smoothing(out, dim=1)
+
+    out_q, out_p, out_v = output_decoder(ma_out)
 
     out_local_p = local_p
     out_local_p[:, :, 0, :] = out_p
