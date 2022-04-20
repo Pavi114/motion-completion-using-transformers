@@ -1,4 +1,4 @@
-import { AmbientLight, AnimationClip, AnimationMixer, Bone, BoxGeometry, Clock, Color, CylinderGeometry, GridHelper, Group, KeyframeTrack, LineBasicMaterial, Mesh, MeshStandardMaterial, PerspectiveCamera, Plane, PlaneGeometry, PlaneHelper, Scene, Skeleton, SkeletonHelper, SkinnedMesh, Vector3, VectorKeyframeTrack, WebGLRenderer } from 'three';
+import { AmbientLight, AnimationClip, AnimationMixer, Bone, BoxGeometry, Clock, Color, CylinderGeometry, GridHelper, Group, KeyframeTrack, LineBasicMaterial, Matrix3, Matrix4, Mesh, MeshStandardMaterial, PerspectiveCamera, Plane, PlaneGeometry, PlaneHelper, Scene, Skeleton, SkeletonHelper, SkinnedMesh, Sphere, SphereGeometry, Vector3, VectorKeyframeTrack, WebGLRenderer } from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 export default class RenderBVH {
@@ -9,7 +9,8 @@ export default class RenderBVH {
     camera: PerspectiveCamera;
     clock: Clock;
     id: number;
-    skeleton_meshes: Mesh[];
+    sphereMeshes: Mesh[];
+    cylinderMeshes: Mesh[];
 
     constructor(canvas: HTMLCanvasElement, motionSequence: number[][][], clock: Clock, id: number) {
         this.clock = clock;
@@ -28,53 +29,72 @@ export default class RenderBVH {
             this.skeletonHelper.material.linewidth = 10
         }
 
-        this.scene.add(this.skeletonHelper);
+        // this.scene.add(this.skeletonHelper);
 
         const boneContainer = new Group();
         boneContainer.add(skeleton.bones[0]);
-
         this.scene.add(boneContainer);
 
+        this.sphereMeshes = [];
+        this.cylinderMeshes = [];
+        
+        const sphereMaterial = new MeshStandardMaterial();
+        sphereMaterial.color.setRGB(255, 0, 0);
+
+        const cylinderMaterial = new MeshStandardMaterial();
+        cylinderMaterial.color.setRGB(0, 0, 255);
+
+        skeleton.bones.forEach((bone, index) => {
+            const sphereGeometry = new SphereGeometry(3.2);
+
+            const sphereMesh = new Mesh(sphereGeometry, sphereMaterial);
+            setSphereMesh(sphereMesh, bone);
+
+            this.sphereMeshes.push(sphereMesh);
+            this.scene.add(sphereMesh);
+        });
+
+        skeleton.bones.forEach((bone, index) => {
+            if (!(bone.parent instanceof Bone)) return;
+
+            const height = bone.parent.position.distanceTo(bone.position);
+
+            const cylinderGeometry = new CylinderGeometry(1.5, 1.5, height);
+
+            const cylinderMesh = new Mesh(cylinderGeometry, cylinderMaterial);
+            setCylinderMesh(cylinderMesh, bone);
+
+            this.cylinderMeshes.push(cylinderMesh);
+
+            this.scene.add(cylinderMesh);
+        });
+        
         this.mixer = new AnimationMixer(this.skeletonHelper);
-
-        this.skeleton_meshes = [];
-
-        // skeleton.bones.forEach((bone, index) => {
-        //     if (!(bone.parent instanceof Bone)) return;
-
-        //     const height = bone.position.distanceTo(bone.parent.position);
-        //     const geometry = new CylinderGeometry(1, 1, height);
-        //     const material = new MeshStandardMaterial();
-
-        //     const mesh = new Mesh(geometry, material);
-        //     setMesh(mesh, bone);
-
-        //     this.skeleton_meshes.push(mesh);
-
-        //     this.scene.add(mesh);
-        // })
+        this.mixer.clipAction(animationClip).play();
 
         // const loader = new FBXLoader();
-        // loader.load('./static/skeleton_fucked.fbx', model => {
+        // loader.load('./static/rp_eric_rigged_001_u3d.fbx', model => {
         //     model.traverse(child => {
         //         if (child instanceof SkinnedMesh) {
-        //             // console.log("Original FBX Bones")
-        //             // child.skeleton.bones.forEach(bone => console.log(bone.name, bone.parent.name))
+        //             // child.skeleton.bones = child.skeleton.bones.map((_, index) => child.skeleton.bones[permutation[index]]);
+
+        //             console.log("FBX Bones | BVH Bones")
+        //             child.skeleton.bones.forEach((bone, index) => console.log(bone.name, bone.parent.name, "|", skeleton.bones[index].name, skeleton.bones[index].parent.name))
 
         //             // console.log("Original BVH Bones")
         //             // skeleton.bones.forEach(bone => console.log(bone.name, bone.parent.name))
 
-        //             skeleton.pose()
+        //             // skeleton.pose()
 
-        //             child.skeleton.bones = skeleton.bones.map(
-        //                 (_, index) => {
-        //                     // console.log(skeleton.bones, index, skeleton.bones[index])
-        //                     return child.skeleton.getBoneByName(skeleton.bones[index].name)
-        //                 }
-        //             );
+        //             // child.skeleton.bones = skeleton.bones.map(
+        //             //     (_, index) => {
+        //             //         // console.log(skeleton.bones, index, skeleton.bones[index])
+        //             //         return child.skeleton.getBoneByName(skeleton.bones[index].name)
+        //             //     }
+        //             // );
 
-        //             console.log(child.skeleton.bones[0])
-        //             console.log(skeleton.bones[0])
+        //             // console.log(child.skeleton.bones[0])
+        //             // console.log(skeleton.bones[0])
 
         //             // child.skeleton.bones = child.skeleton.bones.map((_, index) => skeleton.bones[permutation[index]]);
 
@@ -83,20 +103,27 @@ export default class RenderBVH {
 
         //             // skeleton.pose();
         //             child.bind(skeleton);
-        //             // child.add(skeleton.bones[0])
+        //             // child.add(skeleton.bones[0]);
+
+        //             console.log(child)
+
+        //             console.log('\n\n\n')
+
+        //             console.log("FBX Bones | BVH Bones")
+        //             child.skeleton.bones.forEach((bone, index) => console.log(bone.name, bone.parent.name, "|", skeleton.bones[index].name, skeleton.bones[index].parent.name))
+
         //         }
         //     });
 
+        //     // this.mixer = new AnimationMixer(model);
+
         //     this.scene.add(model);
         // })
-
-
-        this.mixer.clipAction(animationClip).play();
     }
 
     init(canvas: HTMLCanvasElement) {
         this.camera = new PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
-        this.camera.position.set(300, 300, 300);
+        this.camera.position.set(200, 100, 100);
         this.camera.lookAt(0, 0, 0);
 
         this.scene = new Scene();
@@ -109,7 +136,7 @@ export default class RenderBVH {
             new MeshStandardMaterial({ color: 0x333333 })
         );
         ground.rotation.set(-Math.PI / 2, 0, 0);
-        ground.position.set(0, -200, 0);
+        ground.position.set(0, -100, 0);
         this.scene.add(ground);
 
 
@@ -142,9 +169,14 @@ export default class RenderBVH {
 
         if (this.mixer) this.mixer.update(delta);
 
-        if (this.skeleton_meshes) this.skeleton_meshes.forEach((mesh, index) => {
+        if (this.sphereMeshes) this.sphereMeshes.forEach((mesh, index) => {
             const bone = this.skeletonHelper.bones[index];
-            setMesh(mesh, bone);
+            setSphereMesh(mesh, bone);
+        })
+
+        if (this.cylinderMeshes) this.cylinderMeshes.forEach((mesh, index) => {
+            const bone = this.skeletonHelper.bones[index + 1];
+            setCylinderMesh(mesh, bone);
         })
 
         this.renderer.render(this.scene, this.camera);
@@ -209,14 +241,32 @@ export default class RenderBVH {
     }
 }
 
-const setMesh = (mesh: Mesh, bone: Bone) => {
-    mesh.position.fromArray(bone.position.toArray());
-    mesh.rotation.setFromVector3(bone.parent.position.clone().sub(bone.position).normalize());
+const setSphereMesh = (mesh: Mesh, bone: Bone) => {
+    mesh.position.fromArray(bone.position.toArray()); // .add(bone.parent.position).divide(new Vector3(2, 2, 2))
+
+    // console.log(bone.position.clone().sub(bone.parent.position).normalize())
+}
+
+const setCylinderMesh = (mesh: Mesh, bone: Bone) => {
+    const parent = bone.parent.position.clone();
+    const self = bone.position.clone();
+    const d = self.distanceTo(parent);
+
+    mesh.geometry.dispose();
+
+    mesh.geometry = new CylinderGeometry(1.5, 1.5, d);
+    
+    mesh.position.fromArray(
+        parent.clone().add(self.sub(parent).divide(new Vector3(2, 2, 2))).toArray()
+    ); 
+
+    mesh.lookAt(bone.position);
+    mesh.rotateX(1.57);
 }
 
 const parents = [-1, 0, 1, 2, 3, 0, 5, 6, 7, 0, 9, 10, 11, 12, 11, 14, 15, 16, 11, 18, 19, 20];
-const permutation = [0, 9, 10, 11, 12, 13, 18, 19, 20, 21, 14, 15, 16, 17, 5, 6, 7, 8, 1, 2, 3, 4];
-// const permutation = [0, 18, 19, 20, 21, 14, 15, 16, 17, 1, 2, 3, 4, 5, 10, 11, 12, 13, 6, 7, 8, 9];
+// const permutation = [0, 9, 10, 11, 12, 13, 18, 19, 20, 21, 14, 15, 16, 17, 5, 6, 7, 8, 1, 2, 3, 4];
+const permutation = [0, 14, 15, 16, 17, 18, 19, 20, 21, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 const names = [
     "ModelHips",
     "ModelLeftUpLeg",
