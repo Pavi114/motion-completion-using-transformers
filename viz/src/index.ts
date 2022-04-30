@@ -5,8 +5,8 @@ import './style.css';
 import fetchJson from './helpers/fetchJson';
 
 (async () => {
-    // const animation_id = prompt("Enter animation id: ", "1");
-    const animation_id = 7;
+    const animation_id = prompt("Enter animation id: ", "1");
+    // const animation_id = 1;
 
     const motionSequences = [
         await fetchJson(`./static/animations/${animation_id}/ground_truth.json`) as number[][][], 

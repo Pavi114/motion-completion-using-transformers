@@ -40,7 +40,7 @@ class PositionalEncoding(Module):
     def forward(self, x: Tensor) -> Tensor:
         """
         Args:
-            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+            x: Tensor, shape [batch_size, seq_len, embedding_dim]
         """
         return x + self.pe[:x.size(1)]
 
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     seq_len = 128
 
     model = PositionalEncoding(d_model, seq_len)
-    x = torch.zeros(seq_len, 1, d_model)
+    x = torch.zeros(1, seq_len, d_model)
 
     y = model(x).squeeze()
 
     plt.imshow(y)
-    plt.show()
+    plt.savefig('random.png')
