@@ -191,6 +191,30 @@ def quat_ik(grot, gpos, parents):
 
     return res
 
+def quat_ik_tensor(grot, gpos, parents):
+    """
+    Performs Inverse Kinematics (IK) on global quaternions and global positions to retrieve local representations
+
+    :param grot: tensor of global quaternions with shape (..., Nb of joints, 4)
+    :param gpos: tensor of global positions with shape (..., Nb of joints, 3)
+    :param parents: list of parents indices
+    :return: tuple of tensors of local quaternion, local positions
+    """
+    res = [
+        torch.cat([
+            grot[..., :1, :],
+            quat_mul_tensor(quat_inv_tensor(grot[..., parents[1:], :]), grot[..., 1:, :]),
+        ], dim=-2),
+        torch.cat([
+            gpos[..., :1, :],
+            quat_mul_vec_tensor(
+                quat_inv_tensor(grot[..., parents[1:], :]),
+                gpos[..., 1:, :] - gpos[..., parents[1:], :]),
+        ], dim=-2)
+    ]
+
+    return res
+
 
 def quat_mul_vec(q, x):
     """
