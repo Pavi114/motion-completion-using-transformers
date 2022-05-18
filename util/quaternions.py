@@ -164,8 +164,7 @@ def quat_fk_tensor(lrot, lpos, parents):
         gp.append(quat_mul_vec_tensor(gr[parents[i]], lpos[..., i:i+1, :]) + gp[parents[i]])
         gr.append(quat_mul_tensor(gr[parents[i]], lrot[..., i:i+1, :]))
 
-    res = torch.cat(gr, axis=-2), torch.cat(gp, axis=-2)
-    return res
+    return torch.cat(gr, axis=-2), torch.cat(gp, axis=-2)
 
 def quat_ik(grot, gpos, parents):
     """

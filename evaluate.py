@@ -126,17 +126,17 @@ def evaluate(model_name='default'):
     
     Path(path).mkdir(parents=True, exist_ok=True)
 
-    s = f'Q: {global_q_loss / index}\n' + \
-        f'FK: {global_fk_loss / index}\n' + \
-        f'L2P: {global_l2p_loss / index}\n' + \
-        f'L2Q: {global_l2q_loss / index}\n' + \
-        f'NPSS: {global_npss_loss / index}'
+    s = f'Q: {global_q_loss / (index + 1)}\n' + \
+        f'FK: {global_fk_loss / (index + 1)}\n' + \
+        f'L2P: {global_l2p_loss / (index + 1)}\n' + \
+        f'L2Q: {global_l2q_loss / (index + 1)}\n' + \
+        f'NPSS: {global_npss_loss / (index + 1)}'
 
-    in_s = f'IN_Q: {global_interpolation_q_loss / index}\n' + \
-        f'IN_FK: {global_interpolation_fk_loss / index}\n' + \
-        f'IN_L2P: {global_interpolation_l2p_loss / index}\n' + \
-        f'IN_L2Q: {global_interpolation_l2q_loss / index}\n' + \
-        f'IN_NPSS: {global_interpolation_npss_loss / index}\n'
+    in_s = f'IN_Q: {global_interpolation_q_loss / (index + 1)}\n' + \
+        f'IN_FK: {global_interpolation_fk_loss / (index + 1)}\n' + \
+        f'IN_L2P: {global_interpolation_l2p_loss / (index + 1)}\n' + \
+        f'IN_L2Q: {global_interpolation_l2q_loss / (index + 1)}\n' + \
+        f'IN_NPSS: {global_interpolation_npss_loss / (index + 1)}\n'
 
     with open(f'{path}/{model_name}.txt', 'w') as f:
         f.truncate(0)
