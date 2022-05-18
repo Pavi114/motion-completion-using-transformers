@@ -77,6 +77,7 @@ def evaluate(model_name='default'):
         root_v = round_tensor(batch["root_v"].to(DEVICE), decimals=4)
 
         in_local_q = q_interpolation_function(local_q, 1, fixed_points)
+        in_local_q = in_local_q / torch.norm(in_local_q, dim=-1, keepdim=True)
         in_local_p = p_interpolation_function(local_p, 1, fixed_points)
         in_root_p = p_interpolation_function(root_p, 1, fixed_points)
         in_root_v = p_interpolation_function(root_v, 1, fixed_points)
@@ -143,7 +144,7 @@ def evaluate(model_name='default'):
         f.write(s)
     
     print(model_name, "\n", s, "\n", in_s)
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
