@@ -39,7 +39,7 @@ class L2PLoss(Module):
         x = (x - self.x_mean) / self.x_std
         x_cap = (x_cap - self.x_mean) / self.x_std
 
-        return torch.mean(torch.sqrt(torch.sum((x - x_cap)**2, axis=(-2, -1))))
+        return torch.mean(torch.sqrt(torch.sum((x - x_cap)**2, axis=(2, 3))))
 
         # Calculate Loss
         return mse_loss(x, x_cap)
@@ -72,7 +72,7 @@ class L2QLoss(Module):
         q = q / torch.norm(q, dim=-1, keepdim=True)
         q_cap = q_cap / torch.norm(q_cap, dim=-1, keepdim=True)
 
-        return torch.mean(torch.sqrt(torch.sum((q - q_cap)**2, axis=(-2, -1))))
+        return torch.mean(torch.sqrt(torch.sum((q - q_cap)**2, axis=(2, 3))))
 
         # Calculate Loss
         return mse_loss(q, q_cap)

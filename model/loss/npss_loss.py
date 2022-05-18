@@ -36,8 +36,8 @@ class NPSSLoss(Module):
         x_cap = q_cap
 
         # Reshape to have all features in one dimension
-        x = x.reshape((x.shape[0], x.shape[1], x.shape[2] * x.shape[3]))
-        x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], x_cap.shape[2] * x_cap.shape[3]))
+        x = x.reshape((x.shape[0], x.shape[1], -1))
+        x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], -1))
 
         # compute fourier coefficients 
         x_ftt_coeff = torch.real(torch.fft.fft(x, axis=1))
