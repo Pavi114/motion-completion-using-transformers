@@ -5,7 +5,7 @@ from torch.nn.functional import mse_loss
 from constants import DEVICE, PARENTS
 
 from util.quaternions import quat_fk_tensor
-from util.train_stats import load_stats
+from train_stats import load_stats
 
 class L2PLoss(Module):
     """nn.Module that calculates L2P Loss
@@ -39,6 +39,8 @@ class L2PLoss(Module):
         x = (x - self.x_mean) / self.x_std
         x_cap = (x_cap - self.x_mean) / self.x_std
 
+        return torch.mean(torch.sqrt(torch.sum((x - x_cap)**2, axis=-1)))
+
         # Calculate Loss
         return mse_loss(x, x_cap)
 
@@ -69,6 +71,8 @@ class L2QLoss(Module):
         # Normalize
         q = q / torch.norm(q, dim=-1, keepdim=True)
         q_cap = q_cap / torch.norm(q_cap, dim=-1, keepdim=True)
+
+        return torch.mean(torch.sqrt(torch.sum((q - q_cap)**2, axis=-1)))
 
         # Calculate Loss
         return mse_loss(q, q_cap)

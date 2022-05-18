@@ -24,3 +24,6 @@ def load_stats():
         stats = pickle.load(f)
 
     return stats['x_mean'], stats['x_std']
+
+if __name__ == '__main__':
+    save_stats()

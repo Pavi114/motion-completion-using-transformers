@@ -208,7 +208,7 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
             seq_name, subject = ntpath.basename(file[:-4]).split('_')
 
             if subject in actors:
-                print('Processing file {}'.format(file))
+                print(f'Processing file {files_read + 1}: {file}')
                 seq_path = os.path.join(bvh_path, file)
                 anim = read_bvh(seq_path)
 

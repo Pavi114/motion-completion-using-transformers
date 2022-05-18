@@ -39,7 +39,7 @@ def evaluate(model_name='default'):
     p_interpolation_function = get_p_interpolation(config['hyperparameters']['interpolation'])
     q_interpolation_function = get_q_interpolation(config['hyperparameters']['interpolation'])
 
-    checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
+    checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt', map_location=DEVICE)
 
     transformer.load_state_dict(checkpoint['transformer_state_dict'])
     input_encoder.load_state_dict(checkpoint['encoder_state_dict'])
@@ -142,10 +142,8 @@ def evaluate(model_name='default'):
         f.truncate(0)
         f.write(s)
     
-    print(model_name, "\n", s, "\n")
-
-    print(in_s)
-
+    print(model_name, "\n", s, "\n", in_s)
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
