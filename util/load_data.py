@@ -65,7 +65,7 @@ def load_test_dataset(dataset_config) -> DataLoader:
     lafan_test_dataset = LaFan1(dataset_directory=LAFAN1_DIRECTORY,
                                 train=False,
                                 seq_len=dataset_config['window_size'],
-                                files_to_read=1)
+                                files_to_read=-1)
     lafan_test_loader = DataLoader(
         lafan_test_dataset,
         batch_size=dataset_config['batch_size'],
