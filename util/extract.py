@@ -233,8 +233,8 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
                 files_read += 1
 
     with torch.no_grad():
-        X = torch.Tensor(np.asarray(X)).to(DEVICE)
-        Q = torch.Tensor(np.asarray(Q)).to(DEVICE)
+        X = torch.Tensor(np.asarray(X))
+        Q = torch.Tensor(np.asarray(Q))
         # contacts_l = np.asarray(contacts_l)
         # contacts_r = np.asarray(contacts_r)
 

@@ -89,12 +89,12 @@ def rotate_at_frame_tensor(X, Q, parents, n_past=10):
 
     key_glob_Q = global_q[:, n_past - 1: n_past, 0:1, :]  # (B, 1, 1, 4)
 
-    forward = torch.Tensor([1, 0, 1]).to(DEVICE).reshape((1, 1, 1, 3)) \
-                 * quaternions.quat_mul_vec_tensor(key_glob_Q, torch.Tensor([0, 1, 0]).to(DEVICE).reshape((1, 1, 1, 3)))
+    forward = torch.Tensor([1, 0, 1]).reshape((1, 1, 1, 3)) \
+                 * quaternions.quat_mul_vec_tensor(key_glob_Q, torch.Tensor([0, 1, 0]).reshape((1, 1, 1, 3)))
 
     forward = normalize_tensor(forward)
 
-    yrot = normalize_tensor(quaternions.quat_between_tensor(torch.Tensor([1, 0, 0]).to(DEVICE).reshape((1, 1, 1, 3)), forward))
+    yrot = normalize_tensor(quaternions.quat_between_tensor(torch.Tensor([1, 0, 0]).reshape((1, 1, 1, 3)), forward))
 
     global_q = quaternions.quat_mul_tensor(quaternions.quat_inv_tensor(yrot), global_q)
     global_x = quaternions.quat_mul_vec_tensor(quaternions.quat_inv_tensor(yrot), global_x)
