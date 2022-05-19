@@ -16,7 +16,7 @@ def load_train_dataset(dataset_config) -> DataLoader:
     """
     lafan_train_dataset = LaFan1(dataset_directory=LAFAN1_DIRECTORY,
                                  train=True,
-                                 seq_len=dataset_config['window_size'],
+                                 seq_len=dataset_config['max_window_size'],
                                  files_to_read=dataset_config['files_to_read'])
     lafan_train_loader = DataLoader(
         lafan_train_dataset,
@@ -40,7 +40,7 @@ def load_viz_dataset(dataset_config) -> DataLoader:
     """
     lafan_viz_dataset = LaFan1(dataset_directory=LAFAN1_DIRECTORY,
                                train=False,
-                               seq_len=dataset_config['window_size'],
+                               seq_len=dataset_config['max_window_size'],
                                files_to_read=1)
     lafan_viz_loader = DataLoader(
         lafan_viz_dataset,
@@ -64,7 +64,8 @@ def load_test_dataset(dataset_config) -> DataLoader:
     """
     lafan_test_dataset = LaFan1(dataset_directory=LAFAN1_DIRECTORY,
                                 train=False,
-                                seq_len=dataset_config['window_size'],
+                                seq_len=65,
+                                offset=40,
                                 files_to_read=-1)
                                 
     lafan_test_loader = DataLoader(

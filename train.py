@@ -1,5 +1,6 @@
 import argparse
 from itertools import chain
+from random import choices
 from constants import DEVICE, MODEL_SAVE_DIRECTORY
 
 import torch
@@ -11,6 +12,8 @@ from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
+from util.interpolation.linear_interpolation import single_linear_interpolation
+from util.interpolation.spherical_interpolation import single_spherical_interpolation
 from util.load_data import load_train_dataset
 from model.transformer import Transformer
 from util.math import round_tensor
@@ -44,11 +47,6 @@ def train(model_name='default', save_weights=False, load_weights=False):
     best_loss = torch.Tensor([float("+inf")]).to(DEVICE)
 
     loss_history = []
-    
-    p_interpolation_function = get_p_interpolation(config['hyperparameters']['interpolation'])
-    q_interpolation_function = get_q_interpolation(config['hyperparameters']['interpolation'])
-
-    fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
 
     if load_weights:
         checkpoint = torch.load(
@@ -60,34 +58,43 @@ def train(model_name='default', save_weights=False, load_weights=False):
         optimizer_g.load_state_dict(checkpoint['optimizer_state_dict'])
         best_loss = checkpoint['loss']
 
+    max_keyframe_gap = config['dataset']['max_window_size'] - \
+        (config['dataset']['front_pad'] + config['dataset']['back_pad'])
+
     for epoch in range(config['hyperparameters']['epochs']):
         transformer.train()
         train_loss = 0
         tqdm_dataloader = tqdm(train_dataloader)
+
+        random_weighted_keyframe_gap = iter(choices(
+            population=[i for i in range(5, max_keyframe_gap + 1)],
+            weights=[1/i for i in range(5, max_keyframe_gap + 1)],
+            k=10000
+        ))
+
         for index, batch in enumerate(tqdm_dataloader):
             local_q = round_tensor(batch["local_q"].to(DEVICE), decimals=4)
             local_p = round_tensor(batch["local_p"].to(DEVICE), decimals=4)
-            root_p = round_tensor(batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
+            root_p = round_tensor(
+                batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
             root_v = round_tensor(batch["root_v"].to(DEVICE), decimals=4)
 
-            in_local_q = q_interpolation_function(local_q, 1, fixed_points)
-            in_root_p = p_interpolation_function(root_p, 1, fixed_points)
-            in_root_v = p_interpolation_function(root_v, 1, fixed_points)
+            # in_local_q = q_interpolation_function(local_q, 1, fixed_points)
+            # in_root_p = p_interpolation_function(root_p, 1, fixed_points)
+            # in_root_v = p_interpolation_function(root_v, 1, fixed_points)
 
-            # print(torch.any(torch.isnan(in_local_q)))
+            keyframe_gap = next(random_weighted_keyframe_gap)
 
-            # print(local_q[0][0])
-            # print(local_q[0][3])
-            # print(in_local_q[0][1])
+            in_local_q = single_spherical_interpolation(
+                local_q, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+            in_root_p = single_linear_interpolation(
+                root_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+            in_root_v = single_linear_interpolation(
+                root_v, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
 
-            # seq = input_encoder(local_q, root_p, root_v)
             seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
-            out = transformer(seq, seq)
-
-            # print(out)
-
-            # break
+            out = transformer(seq, seq, keyframe_gap)
 
             out_q, out_p, out_v = output_decoder(out)
 

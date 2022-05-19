@@ -40,28 +40,47 @@ class NPSSLoss(Module):
         x_cap = x_cap.reshape((x_cap.shape[0], x_cap.shape[1], -1))
 
         # compute fourier coefficients 
-        x_ftt_coeff = torch.real(torch.fft.fft(x, axis=1))
-        x_cap_fft_coeff = torch.real(torch.fft.fft(x_cap, axis=1))
+        x_fft_coeff = torch.real(torch.fft.fft(x, dim=1))
+        x_cap_fft_coeff = torch.real(torch.fft.fft(x_cap, dim=1))
+
+        # print("x_fft_coeff", x_fft_coeff.shape)
 
         #Sq the coeff
-        x_ftt_coeff_sq = torch.square(x_ftt_coeff)
+        x_fft_coeff_sq = torch.square(x_fft_coeff)
         x_cap_ftt_coeff_sq = torch.square(x_cap_fft_coeff)
 
+        # print("x_fft_coeff_sq", x_fft_coeff_sq.shape)
+
         # sum the tensor
-        x_tot = torch.sum(x_ftt_coeff_sq, axis=1, keepdim=True)
-        x_cap_tot = torch.sum(x_cap_ftt_coeff_sq, axis=1, keepdim=True)
+        x_tot = torch.sum(x_fft_coeff_sq, dim=1, keepdim=True)
+        x_cap_tot = torch.sum(x_cap_ftt_coeff_sq, dim=1, keepdim=True)
+
+        # print("x_tot", x_tot.shape)
 
         # normalize
-        x_norm = x_ftt_coeff_sq / x_tot
+        x_norm = x_fft_coeff_sq / x_tot
         x_cap_norm = x_cap_ftt_coeff_sq / x_cap_tot
 
-        # Compute emd
-        emd = torch.norm(x_norm - x_cap_norm, dim=1, p=1)
+        # print("x_norm", x_norm.shape)
 
-        # Find total norm
-        x_norm_tot = torch.sum(x_norm, axis=1)
+        # Cumulative sum over time
+
+        x_cdf = torch.cumsum(x_norm, dim=1)
+        x_cap_cdf = torch.cumsum(x_cap_norm, dim=1)
+
+        # print("x_cdf", x_cdf.shape)
+
+        # Compute emd
+        emd = torch.norm(x_cdf - x_cap_cdf, dim=1, p=1, keepdim=True)
+
+        # print("emd", emd.shape)
+
+        # # Find total norm
+        # x_norm_tot = torch.sum(x_norm, dim=1)
 
         # Weighted Avg (NPSS)
-        npss_loss = torch.sum(emd * x_norm_tot) / torch.sum(x_norm_tot)
+        npss_loss = torch.sum(emd * x_tot) / torch.sum(x_tot)
+
+
 
         return npss_loss

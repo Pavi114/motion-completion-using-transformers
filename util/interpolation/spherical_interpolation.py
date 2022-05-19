@@ -39,7 +39,7 @@ def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Te
 
     This function accepts a tensor and a list of fixed indices.
     The fixed indices are preserved as-is and the positions in
-    between are filled with pherical interpolation values.
+    between are filled with spherical interpolation values.
 
     TODO: Optimize further, maybe use cuda, parallelize?
 
@@ -69,3 +69,40 @@ def spherical_interpolation(x: Tensor, dim: int, fixed_points: LongTensor) -> Te
     xi.append(fixed_values.index_select(dim, index_tensor[fixed_values.shape[dim] - 1]))
 
     return torch.cat(xi, dim=dim)
+
+def single_spherical_interpolation(x: Tensor, dim: int, front: int = 10, keyframe_gap: int = 30, back: int = 10) -> Tensor:
+    """Perform spherical interpolation on a sequence with only one keyframe gap.
+
+    This function accepts a tensor and the number front and back keyframes.
+    The keyframes are preserved as is and the gap in the middle is filled
+    with spherical interpolation values.
+
+    Args:
+        x (Tensor): Input Tensor to interpolate. [..., N, ...].
+                    N = front + keyframe_gap + back
+        dim (int): Dimension to index
+        front (int, optional): Length of initial keyframes. Defaults to 10.
+        keyframe_gap (int, optional): Length of keyframe gap. Defaults to 30.
+        back (int, optional): Length of final keyframes. Defaults to 10.
+    
+    Returns:
+        Tensor: Spherical Interpolated Tensor
+    """
+    # Define index tensor
+    index_tensor = torch.arange(x.shape[dim]).unsqueeze(dim=1).to(x.device)
+
+    # Extract keyframe boundaries
+    first = x.index_select(dim, index_tensor[front - 1])
+    last = x.index_select(dim, index_tensor[front + keyframe_gap])
+
+    # Interpolate
+    trans_sequence = quat_slerp(first, last, keyframe_gap, dim)
+
+    # Concatenate
+    x = torch.cat([
+        x.index_select(dim, index_tensor[:front].squeeze()),
+        trans_sequence,
+        x.index_select(dim, index_tensor[front + keyframe_gap:].squeeze())
+    ], dim)
+
+    return x

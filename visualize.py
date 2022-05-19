@@ -9,6 +9,8 @@ from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
+from util.interpolation.linear_interpolation import single_linear_interpolation
+from util.interpolation.spherical_interpolation import single_spherical_interpolation
 from util.load_data import load_viz_dataset
 from util.math import round_tensor
 from util.quaternions import quat_fk
@@ -17,7 +19,7 @@ from util.read_config import read_config
 from util.smoothing.moving_average_smoothing import moving_average_smoothing
 
 
-def visualize(model_name='default'):
+def visualize(model_name='default', keyframe_gap=30):
     # Load config
     config = read_config(model_name)
 
@@ -30,11 +32,6 @@ def visualize(model_name='default'):
     input_encoder = InputEncoder(config['embedding_size']).to(DEVICE)
 
     output_decoder = OutputDecoder(config['embedding_size']).to(DEVICE)
-
-    fixed_points = get_fixed_points(config['dataset']['window_size'], config['dataset']['keyframe_gap'])
-
-    p_interpolation_function = get_p_interpolation(config['hyperparameters']['interpolation'])
-    q_interpolation_function = get_q_interpolation(config['hyperparameters']['interpolation'])
 
     checkpoint = torch.load(f'{MODEL_SAVE_DIRECTORY}/model_{model_name}.pt')
 
@@ -54,14 +51,18 @@ def visualize(model_name='default'):
     root_p = round_tensor(viz_batch["X"][:, :, 0, :].to(DEVICE), decimals=4)
     root_v = round_tensor(viz_batch["root_v"].to(DEVICE), decimals=4)
 
-    in_local_q = q_interpolation_function(local_q, 1, fixed_points)
-    in_local_p = p_interpolation_function(local_p, 1, fixed_points)
-    in_root_p = p_interpolation_function(root_p, 1, fixed_points)
-    in_root_v = p_interpolation_function(root_v, 1, fixed_points)
+    in_local_q = single_spherical_interpolation(
+        local_q, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+    in_local_p = single_linear_interpolation(
+        local_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+    in_root_p = single_linear_interpolation(
+        root_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+    in_root_v = single_linear_interpolation(
+        root_v, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
 
     seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
-    out = transformer(seq, seq)
+    out = transformer(seq, seq, keyframe_gap)
 
     ma_out = moving_average_smoothing(out, dim=1)
 
@@ -82,7 +83,7 @@ def visualize(model_name='default'):
     _, out_x = quat_fk(out_q.detach().cpu().numpy(),
                        out_local_p.detach().cpu().numpy(), PARENTS)
     _, ma_out_x = quat_fk(ma_out_q.detach().cpu().numpy(),
-                       ma_out_local_p.detach().cpu().numpy(), PARENTS)
+                          ma_out_local_p.detach().cpu().numpy(), PARENTS)
 
     for i in range(config['dataset']['batch_size']):
         output_dir = f'{OUTPUT_DIRECTORY}/viz/{model_name}/{i}'
@@ -115,6 +116,12 @@ if __name__ == '__main__':
         type=str,
         default='default')
 
+    parser.add_argument(
+        '--keyframe_gap',
+        help='Keyframe Gap for Visualization',
+        type=int,
+        default=30)
+
     args = parser.parse_args()
 
-    visualize(args.model_name)
+    visualize(args.model_name, args.keyframe_gap)

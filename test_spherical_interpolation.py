@@ -1,6 +1,6 @@
 import torch
 
-from util.interpolation.spherical_interpolation import spherical_interpolation
+from util.interpolation.spherical_interpolation import single_spherical_interpolation, spherical_interpolation
 
 q = torch.Tensor([
     [
@@ -22,10 +22,8 @@ q = torch.Tensor([
 ])
 fixed_points = torch.LongTensor([0, 3])
 
-print(q.shape)
-
 out = spherical_interpolation(q, -3, fixed_points)
-
-print(q, q.shape)
+out_ = single_spherical_interpolation(q, -3, 1, 2, 1)
 
 print(out, out.shape)
+print(out_, out_.shape)
