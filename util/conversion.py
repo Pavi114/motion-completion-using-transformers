@@ -6,6 +6,9 @@
 # etc. Add when necessary.
 
 import numpy as np
+import torch
+
+from constants import DEVICE
 from . import quaternions
 
 
@@ -70,6 +73,37 @@ def rotate_at_frame(X, Q, parents, n_past=10):
 
     return X, Q
 
+# Orient the data according to the las past keframe
+def rotate_at_frame_tensor(X, Q, parents, n_past=10):
+    """
+    Re-orients the animation data according to the last frame of past context.
+
+    :param X: tensor of local positions of shape (Batchsize, Timesteps, Joints, 3)
+    :param Q: tensor of local quaternions (Batchsize, Timesteps, Joints, 4)
+    :param parents: list of parents' indices
+    :param n_past: number of frames in the past context
+    :return: The rotated positions X and quaternions Q
+    """
+    # Get global quats and global poses (FK)
+    global_q, global_x = quaternions.quat_fk_tensor(Q, X, parents)
+
+    key_glob_Q = global_q[:, n_past - 1: n_past, 0:1, :]  # (B, 1, 1, 4)
+
+    forward = torch.Tensor([1, 0, 1]).to(DEVICE).reshape((1, 1, 1, 3)) \
+                 * quaternions.quat_mul_vec_tensor(key_glob_Q, torch.Tensor([0, 1, 0]).to(DEVICE).reshape((1, 1, 1, 3)))
+
+    forward = normalize_tensor(forward)
+
+    yrot = normalize_tensor(quaternions.quat_between_tensor(torch.Tensor([1, 0, 0]).to(DEVICE).reshape((1, 1, 1, 3)), forward))
+
+    new_glob_Q = quaternions.quat_mul_tensor(quaternions.quat_inv_tensor(yrot), global_q)
+    new_glob_X = quaternions.quat_mul_vec_tensor(quaternions.quat_inv_tensor(yrot), global_x)
+
+    # back to local quat-pos
+    Q, X = quaternions.quat_ik_tensor(new_glob_Q, new_glob_X, parents)
+
+    return X, Q
+
 def length(x, axis=-1, keepdims=True):
     """
     Computes vector norm along a tensor axis(axes)
@@ -80,6 +114,18 @@ def length(x, axis=-1, keepdims=True):
     :return: The length or vector of lengths.
     """
     lgth = np.sqrt(np.sum(x * x, axis=axis, keepdims=keepdims))
+    return lgth
+
+def length_tensor(x, axis=-1, keepdims=True):
+    """
+    Computes vector norm along a tensor axis(axes)
+
+    :param x: tensor
+    :param axis: axis(axes) along which to compute the norm
+    :param keepdims: indicates if the dimension(s) on axis should be kept
+    :return: The length or vector of lengths.
+    """
+    lgth = torch.sqrt(torch.sum(x * x, dim=axis, keepdim=keepdims))
     return lgth
 
 
@@ -93,6 +139,18 @@ def normalize(x, axis=-1, eps=1e-8):
     :return: The normalized tensor
     """
     res = x / (length(x, axis=axis) + eps)
+    return res
+
+def normalize_tensor(x, axis=-1, eps=1e-8):
+    """
+    Normalizes a tensor over some axis (axes)
+
+    :param x: data tensor
+    :param axis: axis(axes) along which to compute the norm
+    :param eps: epsilon to prevent numerical instabilities
+    :return: The normalized tensor
+    """
+    res = x / (length_tensor(x, axis=axis) + eps)
     return res
 
 def extract_feet_contacts(pos, lfoot_idx, rfoot_idx, velfactor=0.02):

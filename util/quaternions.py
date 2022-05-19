@@ -236,8 +236,8 @@ def quat_mul_vec_tensor(q, x):
     :param x: tensor of vectors of shape (..., Nb of joints, 3)
     :return: the resulting array of rotated vectors
     """
-    t = 2.0 * torch.cross(q[..., 1:], x)
-    res = x + q[..., 0].unsqueeze(dim=-1) * t + torch.cross(q[..., 1:], t)
+    t = 2.0 * torch.linalg.cross(q[..., 1:], x, dim=-1)
+    res = x + q[..., 0].unsqueeze(dim=-1) * t + torch.linalg.cross(q[..., 1:], t, dim=-1)
 
     return res
 
@@ -253,6 +253,20 @@ def quat_between(x, y):
         np.sqrt(np.sum(x * x, axis=-1) * np.sum(y * y, axis=-1))[..., np.newaxis] +
         np.sum(x * y, axis=-1)[..., np.newaxis],
         np.cross(x, y)], axis=-1)
+    return res
+
+def quat_between_tensor(x, y):
+    """
+    Quaternion rotations between two 3D-vector arrays
+
+    :param x: tensor of 3D vectors
+    :param y: tensor of 3D vetcors
+    :return: tensor of quaternions
+    """
+    res = torch.cat([
+        torch.sqrt(torch.sum(x * x, dim=-1) * torch.sum(y * y, dim=-1)).unsqueeze(dim=-1) +
+        torch.sum(x * y, dim=-1).unsqueeze(dim=-1),
+        torch.linalg.cross(x, y, dim=-1)], dim=-1)
     return res
 
 

@@ -35,8 +35,8 @@ class LaFan1(Dataset):
         X, Q, parents = extract.get_lafan1_set(
             dataset_directory, self.actors, window=self.seq_len, offset=self.offset, files_to_read=self.files_to_read)
 
-        Q = torch.Tensor(Q).to(DEVICE)
-        X = torch.Tensor(X).to(DEVICE)
+        # Q = torch.Tensor(Q).to(DEVICE)
+        # X = torch.Tensor(X).to(DEVICE)
 
         # Global representation:
         q_glbl, x_glbl = quaternions.quat_fk_tensor(Q, X, parents)

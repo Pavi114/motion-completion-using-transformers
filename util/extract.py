@@ -1,5 +1,8 @@
 import re, os, ntpath
 import numpy as np
+import torch
+
+from constants import DEVICE
 
 from . import conversion, quaternions
 
@@ -229,18 +232,18 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
             
                 files_read += 1
 
-    X = np.asarray(X)
-    Q = np.asarray(Q)
+    X = torch.Tensor(np.asarray(X)).to(DEVICE)
+    Q = torch.Tensor(np.asarray(Q)).to(DEVICE)
     # contacts_l = np.asarray(contacts_l)
     # contacts_r = np.asarray(contacts_r)
 
     # Sequences around XZ = 0
-    xzs = np.mean(X[:, :, 0, ::2], axis=1, keepdims=True)
+    xzs = torch.mean(X[:, :, 0, ::2], dim=1, keepdim=True)
     X[:, :, 0, 0] = X[:, :, 0, 0] - xzs[..., 0]
     X[:, :, 0, 2] = X[:, :, 0, 2] - xzs[..., 1]
 
     # Unify facing on last seed frame
-    X, Q = conversion.rotate_at_frame(X, Q, anim.parents, n_past=npast)
+    X, Q = conversion.rotate_at_frame_tensor(X, Q, anim.parents, n_past=npast)
 
     return X, Q, anim.parents
 
