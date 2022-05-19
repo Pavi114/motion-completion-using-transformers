@@ -32,7 +32,7 @@ class LaFan1(Dataset):
     def load_data(self, dataset_directory):
 
         print('Building the data set...')
-        X, Q, parents, contacts_l, contacts_r = extract.get_lafan1_set(
+        X, Q, parents = extract.get_lafan1_set(
             dataset_directory, self.actors, window=self.seq_len, offset=self.offset, files_to_read=self.files_to_read)
 
         Q = torch.Tensor(Q).to(DEVICE)

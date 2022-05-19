@@ -215,15 +215,15 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
                 # Sliding windows
                 i = 0
                 while i+window < anim.pos.shape[0]:
-                    q, x = quaternions.quat_fk(anim.quats[i: i+window], anim.pos[i: i+window], anim.parents)
+                    # q, x = quaternions.quat_fk(anim.quats[i: i+window], anim.pos[i: i+window], anim.parents)
                     # Extract contacts
-                    c_l, c_r = conversion.extract_feet_contacts(x, [3, 4], [7, 8], velfactor=0.02)
+                    # c_l, c_r = conversion.extract_feet_contacts(x, [3, 4], [7, 8], velfactor=0.02)
                     X.append(anim.pos[i: i+window])
                     Q.append(anim.quats[i: i+window])
                     seq_names.append(seq_name)
                     subjects.append(subjects)
-                    contacts_l.append(c_l)
-                    contacts_r.append(c_r)
+                    # contacts_l.append(c_l)
+                    # contacts_r.append(c_r)
 
                     i += offset
             
@@ -231,8 +231,8 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
 
     X = np.asarray(X)
     Q = np.asarray(Q)
-    contacts_l = np.asarray(contacts_l)
-    contacts_r = np.asarray(contacts_r)
+    # contacts_l = np.asarray(contacts_l)
+    # contacts_r = np.asarray(contacts_r)
 
     # Sequences around XZ = 0
     xzs = np.mean(X[:, :, 0, ::2], axis=1, keepdims=True)
@@ -242,7 +242,7 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
     # Unify facing on last seed frame
     X, Q = conversion.rotate_at_frame(X, Q, anim.parents, n_past=npast)
 
-    return X, Q, anim.parents, contacts_l, contacts_r
+    return X, Q, anim.parents
 
 def get_train_stats(bvh_folder, train_set):
     """
