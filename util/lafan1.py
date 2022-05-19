@@ -42,10 +42,10 @@ class LaFan1(Dataset):
         q_glbl, x_glbl = quaternions.quat_fk_tensor(Q, X, parents)
 
         # Global positions stats:
-        self.x_mean = torch.mean(x_glbl.reshape(
-            [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
-        self.x_std = torch.std(x_glbl.reshape(
-            [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
+        # self.x_mean = torch.mean(x_glbl.reshape(
+        #     [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
+        # self.x_std = torch.std(x_glbl.reshape(
+        #     [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
 
         input_ = {}
         # The following features are inputs:
@@ -57,7 +57,7 @@ class LaFan1(Dataset):
 
         # Add zero velocity vector for last frame
         input_['root_v'] = torch.cat(
-            (input_['root_v'], torch.zeros((input_['root_v'].shape[0], 1, 3))), dim=-2)
+            (input_['root_v'], torch.zeros((input_['root_v'].shape[0], 1, 3)).to(DEVICE)), dim=-2)
 
         # 3. contact information vector (4d)
         # input_['contact'] = torch.cat([contacts_l, contacts_r], dim=-1)
