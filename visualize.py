@@ -7,6 +7,7 @@ import torch
 from torch.nn import functional as F
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
+from train_stats import load_stats
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.interpolation.linear_interpolation import single_linear_interpolation
@@ -42,6 +43,10 @@ def visualize(model_name='default', keyframe_gap=30):
     transformer.eval()
     input_encoder.eval()
     output_decoder.eval()
+    
+    _, _, offsets, _ = load_stats()
+    offsets = torch.Tensor(offsets).to(DEVICE)
+    offsets = offsets.repeat((config['dataset']['batch_size'], config['dataset']['max_window_size'], 1, 1))
 
     # Visualize
     viz_batch = next(iter(test_dataloader))
@@ -53,12 +58,17 @@ def visualize(model_name='default', keyframe_gap=30):
 
     in_local_q = single_spherical_interpolation(
         local_q, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
-    in_local_p = single_linear_interpolation(
-        local_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+
     in_root_p = single_linear_interpolation(
         root_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+    
     in_root_v = single_linear_interpolation(
         root_v, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+
+    in_local_p = torch.cat([
+        in_root_p.unsqueeze(dim=2),
+        offsets
+    ], dim=2)
 
     seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
@@ -70,11 +80,15 @@ def visualize(model_name='default', keyframe_gap=30):
 
     ma_out_q, ma_out_p, ma_out_v = output_decoder(ma_out)
 
-    out_local_p = local_p
-    out_local_p[:, :, 0, :] = out_p
+    out_local_p = torch.cat([
+        out_p.unsqueeze(dim=2),
+        offsets
+    ], dim=2)
 
-    ma_out_local_p = local_p
-    ma_out_local_p[:, :, 0, :] = ma_out_p
+    ma_out_local_p = torch.cat([
+        ma_out_p.unsqueeze(dim=2),
+        offsets
+    ], dim=2)
 
     _, x = quat_fk(local_q.detach().cpu().numpy(),
                    local_p.detach().cpu().numpy(), PARENTS)

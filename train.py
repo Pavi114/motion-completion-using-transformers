@@ -10,6 +10,7 @@ from tqdm import tqdm
 from model.encoding.input_encoder import InputEncoder
 from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
+from train_stats import load_stats
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.interpolation.linear_interpolation import single_linear_interpolation
@@ -61,6 +62,10 @@ def train(model_name='default', save_weights=False, load_weights=False):
     max_keyframe_gap = config['dataset']['max_window_size'] - \
         (config['dataset']['front_pad'] + config['dataset']['back_pad'])
 
+    _, _, offsets, _ = load_stats()
+    offsets = torch.Tensor(offsets).to(DEVICE)
+    offsets = offsets.repeat((config['dataset']['batch_size'], config['dataset']['max_window_size'], 1, 1))
+
     for epoch in range(config['hyperparameters']['epochs']):
         transformer.train()
         train_loss = 0
@@ -98,8 +103,10 @@ def train(model_name='default', save_weights=False, load_weights=False):
 
             out_q, out_p, out_v = output_decoder(out)
 
-            out_local_p = local_p
-            out_local_p[:, :, 0, :] = out_p
+            out_local_p = torch.cat([
+                out_p.unsqueeze(dim=2),
+                offsets
+            ], dim=2)
 
             optimizer_g.zero_grad()
 

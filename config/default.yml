@@ -8,7 +8,7 @@ dataset:
   files_to_read: 1
   keyframe_gap: 30
   front_pad: 10
-  back_pad: 1
+  back_pad: 10
   num_workers: 4
   max_window_size: 65
 

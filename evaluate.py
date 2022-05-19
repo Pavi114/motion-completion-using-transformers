@@ -12,6 +12,7 @@ from model.encoding.output_decoder import OutputDecoder
 from model.loss.fk_loss import FKLoss
 from model.loss.l2_loss import L2PLoss, L2QLoss
 from model.loss.npss_loss import NPSSLoss
+from train_stats import load_stats
 from util.interpolation.fixed_points import get_fixed_points
 from util.interpolation.interpolation_factory import get_p_interpolation, get_q_interpolation
 from util.interpolation.linear_interpolation import single_linear_interpolation
@@ -67,7 +68,9 @@ def evaluate(model_name='default', keyframe_gap=30):
     global_interpolation_l2q_loss = 0
     global_interpolation_npss_loss = 0
 
-    sequence_length = config['dataset']['front_pad'] + keyframe_gap + config['dataset']['back_pad']
+    _, _, offsets, _ = load_stats()
+    offsets = torch.Tensor(offsets).to(DEVICE)
+    offsets = offsets.repeat((config['dataset']['batch_size'], config['dataset']['max_window_size'], 1, 1))
 
     # Visualize
     tqdm_dataloader = tqdm(test_dataloader)
@@ -79,12 +82,18 @@ def evaluate(model_name='default', keyframe_gap=30):
 
         in_local_q = single_spherical_interpolation(
             local_q, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
-        in_local_p = single_linear_interpolation(
-            local_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+
         in_root_p = single_linear_interpolation(
             root_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+ 
         in_root_v = single_linear_interpolation(
             root_v, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+
+        in_local_p = torch.cat([
+            in_root_p.unsqueeze(dim=2),
+            offsets
+        ], dim=2)
+
 
         seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
@@ -94,8 +103,10 @@ def evaluate(model_name='default', keyframe_gap=30):
 
         out_q = out_q / torch.norm(out_q, dim=-1, keepdim=True)
 
-        out_local_p = local_p
-        out_local_p[:, :, 0, :] = out_p
+        out_local_p = torch.cat([
+            out_p.unsqueeze(dim=2),
+            offsets
+        ], dim=2)
 
         local_q = local_q[:, config['dataset']['front_pad']:config['dataset']['front_pad'] + keyframe_gap, ...]
         local_p = local_p[:, config['dataset']['front_pad']:config['dataset']['front_pad'] + keyframe_gap, ...]
