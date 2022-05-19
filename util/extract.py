@@ -232,18 +232,19 @@ def get_lafan1_set(bvh_path, actors, window=50, offset=20, files_to_read=-1):
             
                 files_read += 1
 
-    X = torch.Tensor(np.asarray(X)).to(DEVICE)
-    Q = torch.Tensor(np.asarray(Q)).to(DEVICE)
-    # contacts_l = np.asarray(contacts_l)
-    # contacts_r = np.asarray(contacts_r)
+    with torch.no_grad():
+        X = torch.Tensor(np.asarray(X)).to(DEVICE)
+        Q = torch.Tensor(np.asarray(Q)).to(DEVICE)
+        # contacts_l = np.asarray(contacts_l)
+        # contacts_r = np.asarray(contacts_r)
 
-    # Sequences around XZ = 0
-    xzs = torch.mean(X[:, :, 0, ::2], dim=1, keepdim=True)
-    X[:, :, 0, 0] = X[:, :, 0, 0] - xzs[..., 0]
-    X[:, :, 0, 2] = X[:, :, 0, 2] - xzs[..., 1]
+        # Sequences around XZ = 0
+        xzs = torch.mean(X[:, :, 0, ::2], dim=1, keepdim=True)
+        X[:, :, 0, 0] = X[:, :, 0, 0] - xzs[..., 0]
+        X[:, :, 0, 2] = X[:, :, 0, 2] - xzs[..., 1]
 
-    # Unify facing on last seed frame
-    X, Q = conversion.rotate_at_frame_tensor(X, Q, anim.parents, n_past=npast)
+        # Unify facing on last seed frame
+        X, Q = conversion.rotate_at_frame_tensor(X, Q, anim.parents, n_past=npast)
 
     return X, Q, anim.parents
 
