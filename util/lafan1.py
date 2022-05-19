@@ -1,3 +1,4 @@
+from constants import DEVICE
 from util import quaternions, extract
 import numpy as np
 import torch
@@ -33,18 +34,18 @@ class LaFan1(Dataset):
         print('Building the data set...')
         X, Q, parents, contacts_l, contacts_r = extract.get_lafan1_set(
             dataset_directory, self.actors, window=self.seq_len, offset=self.offset, files_to_read=self.files_to_read)
-        # print(X.shape)
-        # print(X[0][0])
+
+        Q = torch.Tensor(Q).to(DEVICE)
+        X = torch.Tensor(X).to(DEVICE)
+
         # Global representation:
-        q_glbl, x_glbl = quaternions.quat_fk(Q, X, parents)
+        q_glbl, x_glbl = quaternions.quat_fk_tensor(Q, X, parents)
 
         # Global positions stats:
-        x_mean = np.mean(x_glbl.reshape(
-            [x_glbl.shape[0], x_glbl.shape[1], -1]).transpose([0, 2, 1]), axis=(0, 2), keepdims=True)
-        x_std = np.std(x_glbl.reshape(
-            [x_glbl.shape[0], x_glbl.shape[1], -1]).transpose([0, 2, 1]), axis=(0, 2), keepdims=True)
-        self.x_mean = torch.from_numpy(x_mean)
-        self.x_std = torch.from_numpy(x_std)
+        self.x_mean = torch.mean(x_glbl.reshape(
+            [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
+        self.x_std = torch.std(x_glbl.reshape(
+            [x_glbl.shape[0], x_glbl.shape[1], -1]).permute([0, 2, 1]), dim=(0, 2), keepdim=True)
 
         input_ = {}
         # The following features are inputs:
@@ -55,11 +56,11 @@ class LaFan1(Dataset):
         input_['root_v'] = x_glbl[:, 1:, 0, :] - x_glbl[:, :-1, 0, :]
 
         # Add zero velocity vector for last frame
-        input_['root_v'] = np.concatenate(
-            (input_['root_v'], np.zeros((input_['root_v'].shape[0], 1, 3))), axis=-2)
+        input_['root_v'] = torch.cat(
+            (input_['root_v'], torch.zeros((input_['root_v'].shape[0], 1, 3))), dim=-2)
 
         # 3. contact information vector (4d)
-        input_['contact'] = np.concatenate([contacts_l, contacts_r], -1)
+        # input_['contact'] = torch.cat([contacts_l, contacts_r], dim=-1)
 
         # 4. global root position offset (?d)
         input_['root_p_offset'] = x_glbl[:, -1, 0, :]
@@ -90,15 +91,13 @@ class LaFan1(Dataset):
 
     def __getitem__(self, idx):
         sample = {}
-        sample['local_q'] = self.data['local_q'][idx].astype(np.float32)
-        sample['root_v'] = self.data['root_v'][idx].astype(np.float32)
-        sample['contact'] = self.data['contact'][idx].astype(np.float32)
-        sample['root_p_offset'] = self.data['root_p_offset'][idx].astype(
-            np.float32)
-        sample['local_q_offset'] = self.data['local_q_offset'][idx].astype(
-            np.float32)
-        sample['target'] = self.data['target'][idx].astype(np.float32)
-        sample['root_p'] = self.data['root_p'][idx].astype(np.float32)
-        sample['X'] = self.data['X'][idx].astype(np.float32)
-        sample['local_p'] = self.data['local_p'][idx].astype(np.float32)
+        sample['local_q'] = self.data['local_q'][idx]
+        sample['root_v'] = self.data['root_v'][idx]
+        # sample['contact'] = self.data['contact'][idx]
+        sample['root_p_offset'] = self.data['root_p_offset'][idx]
+        sample['local_q_offset'] = self.data['local_q_offset'][idx]
+        sample['target'] = self.data['target'][idx]
+        sample['root_p'] = self.data['root_p'][idx]
+        sample['X'] = self.data['X'][idx]
+        sample['local_p'] = self.data['local_p'][idx]
         return sample
