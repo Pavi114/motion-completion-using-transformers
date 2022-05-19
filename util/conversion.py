@@ -96,11 +96,11 @@ def rotate_at_frame_tensor(X, Q, parents, n_past=10):
 
     yrot = normalize_tensor(quaternions.quat_between_tensor(torch.Tensor([1, 0, 0]).to(DEVICE).reshape((1, 1, 1, 3)), forward))
 
-    gloabl_q = quaternions.quat_mul_tensor(quaternions.quat_inv_tensor(yrot), global_q)
+    global_q = quaternions.quat_mul_tensor(quaternions.quat_inv_tensor(yrot), global_q)
     global_x = quaternions.quat_mul_vec_tensor(quaternions.quat_inv_tensor(yrot), global_x)
 
     # back to local quat-pos
-    Q, X = quaternions.quat_ik_tensor(gloabl_q, global_x, parents)
+    Q, X = quaternions.quat_ik_tensor(global_q, global_x, parents)
 
     return X, Q
 
