@@ -35,8 +35,8 @@ class LaFan1(Dataset):
         X, Q, parents = extract.get_lafan1_set(
             dataset_directory, self.actors, window=self.seq_len, offset=self.offset, files_to_read=self.files_to_read)
 
-        # Q = torch.Tensor(Q).to(DEVICE)
-        # X = torch.Tensor(X).to(DEVICE)
+        Q = torch.Tensor(Q).cpu()
+        X = torch.Tensor(X).cpu()
 
         # Global representation:
         q_glbl, x_glbl = quaternions.quat_fk_tensor(Q, X, parents)
@@ -57,7 +57,7 @@ class LaFan1(Dataset):
 
         # Add zero velocity vector for last frame
         input_['root_v'] = torch.cat(
-            (input_['root_v'], torch.zeros((input_['root_v'].shape[0], 1, 3)).to(DEVICE)), dim=-2)
+            (input_['root_v'], torch.zeros((input_['root_v'].shape[0], 1, 3))), dim=-2)
 
         # 3. contact information vector (4d)
         # input_['contact'] = torch.cat([contacts_l, contacts_r], dim=-1)
