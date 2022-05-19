@@ -73,7 +73,7 @@ def single_linear_interpolation(x: Tensor, dim: int, front: int = 10, keyframe_g
     tile_dimension[dim] = keyframe_gap + 2
     tile_dimension = tuple(tile_dimension)
 
-    trans_fractions = torch.linspace(0, 1, keyframe_gap + 2).reshape(tile_dimension)
+    trans_fractions = torch.linspace(0, 1, keyframe_gap + 2).reshape(tile_dimension).to(x.device)
     offset = last - first
 
     trans_sequence = torch.tile(first, tile_dimension)
