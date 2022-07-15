@@ -1,6 +1,6 @@
 import argparse
 from itertools import chain
-from random import choices
+from random import choices, randint
 from constants import DEVICE, MODEL_SAVE_DIRECTORY
 
 import torch
@@ -90,12 +90,14 @@ def train(model_name='default', save_weights=False, load_weights=False):
 
             keyframe_gap = next(random_weighted_keyframe_gap)
 
+            front_gap = config['dataset']['front_pad'] + randint(0, config['dataset']['max_window_size'] - config['dataset']['front_pad'] - config['dataset']['back_pad'] - keyframe_gap)
+
             in_local_q = single_spherical_interpolation(
-                local_q, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+                local_q, dim=1, front=front_gap, keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
             in_root_p = single_linear_interpolation(
-                root_p, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+                root_p, dim=1, front=front_gap, keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
             in_root_v = single_linear_interpolation(
-                root_v, dim=1, front=config['dataset']['front_pad'], keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
+                root_v, dim=1, front=front_gap, keyframe_gap=keyframe_gap, back=config['dataset']['back_pad'])
 
             seq = input_encoder(in_local_q, in_root_p, in_root_v)
 
