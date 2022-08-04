@@ -1,10 +1,27 @@
 # Transformer based Motion In-betweening
 
-This repository contains the code accompaniying the thesis project "Transformer based Motion In-betweening". It contains all the modules shown in the below block diagram.
+In-Betweening is the process of drawing transition frames between temporally-sparse keyframes to create a smooth animation sequence. This work presents a novel transformer based in betweening technique that serves as a tool for 3D animators.
 
+
+## Visualizer
+
+https://user-images.githubusercontent.com/44777563/182904169-af1d0b4d-a023-4ddd-b33e-b5a4ec4aa717.mp4
+
+
+
+
+
+## Motion Generator
+
+https://user-images.githubusercontent.com/44777563/182904188-ce43c556-7472-47d2-bc04-c5cb868674b6.mp4
+
+
+
+## Architecture
 ![](./static/model.jpg)
 
 ## Downloading Data
+
 
 ### LAFAN1 Dataset
 
